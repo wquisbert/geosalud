@@ -3,353 +3,408 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GeoVisor Coordinaciones de Red</title>
+    <title>SUISD - SEDES LA PAZ</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/variable-pie.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>     <script src="https://code.highcharts.com/modules/export-data.js"></script>   <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: {
-                        'brand': { 
-                            50: '#fef2f2', 
-                            100: '#fee2e2', 
-                            600: '#dc2626', 
-                            800: '#991b1b', // Rojo Institucional
-                            900: '#7f1d1d', // Rojo Oscuro Header
-                            'green': '#059669' // Excel
-                        }
-                    },
-                    fontFamily: { sans: ['Roboto', 'Segoe UI', 'sans-serif'] }
+                    colors: { brand: { 800: '#7f1d1d', 900: '#450a0a' } },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    boxShadow: { 'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.37)' }
                 }
             }
         }
+        
+        // Highcharts Modern Theme & Export Config
+        Highcharts.setOptions({
+            chart: { style: { fontFamily: 'Inter, sans-serif' } },
+            title: { style: { color: '#334155', fontWeight: '700', fontSize: '13px' } },
+            tooltip: { 
+                backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                borderColor: '#e2e8f0', 
+                borderRadius: 8,
+                shadow: true
+            },
+            exporting: {
+                enabled: true, // Habilita descarga
+                buttons: {
+                    contextButton: {
+                        menuItems: ["viewFullscreen", "printChart", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG"],
+                        symbolStroke: '#64748b',
+                        theme: { fill: '#f8fafc' }
+                    }
+                }
+            },
+            credits: { enabled: false }
+        });
     </script>
 
     <style>
-        body { margin: 0; padding: 0; overflow: hidden; background: #f3f4f6; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; color: #334155; }
         
-        /* Personalización de Scrollbar */
-        .scroller::-webkit-scrollbar { width: 6px; }
-        .scroller::-webkit-scrollbar-track { background: #f1f1f1; }
-        .scroller::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .scroller::-webkit-scrollbar-thumb:hover { background: #991b1b; }
-
-        /* Filtro para Marcadores Rojos */
-        .leaflet-marker-icon { filter: hue-rotate(140deg) brightness(0.9) saturate(1.5); }
+        #map { width: 100%; height: 100%; z-index: 1; border-radius: 0.75rem; }
         
-        /* Efecto Tarjeta Activa en Lista */
-        .card-active { 
-            border-left: 5px solid #991b1b !important; 
-            background: linear-gradient(to right, #fff1f2, #ffffff) !important;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Estilo del Popup (Ficha Técnica en Mapa) */
-        .leaflet-popup-content-wrapper { 
-            border-radius: 12px; 
-            padding: 0; 
-            overflow: hidden;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
-        }
-        .leaflet-popup-content { margin: 0; width: 300px !important; }
-        .leaflet-container a.leaflet-popup-close-button {
-            color: white; top: 5px; right: 5px; font-size: 18px; text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-        }
-
-        /* Control de Capas */
+        /* Control de Capas Moderno */
         .leaflet-control-layers {
-            border: none !important; border-radius: 8px !important;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
-            padding: 8px !important; font-weight: 600; font-family: 'Segoe UI';
+            border: none !important; border-radius: 12px !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+            padding: 10px !important; font-size: 11px; font-weight: 500;
+            color: #475569; background: rgba(255, 255, 255, 0.98);
         }
 
-        @media (max-width: 768px) {
-            .layout { flex-direction: column-reverse; }
-            .panel-side { width: 100% !important; height: 50% !important; }
-            .panel-map { width: 100% !important; height: 50% !important; }
+        /* Iconos SVG Markers */
+        .health-icon-container {
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; border: 2px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .health-icon-container svg { width: 60%; height: 60%; }
+        
+        /* Colores Específicos */
+        .icon-l1 { background: #64748b; color: white; } /* Slate */
+        .icon-l2 { background: #f97316; color: white; } /* Orange */
+        .icon-l3 { background: #b91c1c; color: white; } /* Red */
+        
+        /* Radar Animation */
+        .marker-selected { animation: radar-pulse 2s infinite; border-color: #fff; z-index: 1000 !important; }
+        @keyframes radar-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(185, 28, 28, 0.7); }
+            70% { box-shadow: 0 0 0 25px rgba(185, 28, 28, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(185, 28, 28, 0); }
+        }
+
+        /* Popup */
+        .leaflet-popup-content-wrapper { padding: 0 !important; border-radius: 12px !important; overflow: hidden; }
+        .leaflet-popup-content { margin: 0 !important; width: 280px !important; }
+        .leaflet-popup-tip { background: #450a0a !important; }
+
+        @media (min-width: 1024px) {
+            ::-webkit-scrollbar { width: 6px; }
+            ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         }
     </style>
 </head>
-<body class="flex flex-col h-screen w-screen text-gray-800">
+<body class="h-screen flex flex-col overflow-hidden bg-slate-50">
 
-    <header class="bg-brand-900 text-white h-16 shrink-0 flex items-center justify-between px-6 shadow-xl z-30 relative">
-        <div class="flex items-center gap-4">
-            <div class="bg-white/10 p-2 rounded-lg backdrop-blur-sm">
-                <i class="fa-solid fa-map-location text-2xl"></i>
+    <nav class="bg-brand-900 z-50 shrink-0 shadow-xl">
+        <div class="px-4 py-3 lg:px-6 lg:h-16 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="bg-white/10 p-2 rounded-lg text-white border border-white/20"><i data-lucide="bar-chart-2" class="w-5 h-5"></i></div>
+                <div>
+                    <h1 class="font-bold text-white text-lg leading-none">SUISD <span class="font-light opacity-80">Estrucutura</span></h1>
+                    <p class="text-[10px] text-white/60 font-medium uppercase mt-0.5">Establecimientos de Salud</p>
+                </div>
             </div>
-            <div>
-                <h1 class="font-extrabold text-lg md:text-xl tracking-tight leading-none">GEOVISOR</h1>
-                <p class="text-xs md:text-sm font-light text-gray-200 opacity-90 tracking-wide">COORDINACIONES DE RED</p>
+            
+            <div class="flex flex-col lg:flex-row gap-3 lg:items-center w-full lg:w-auto">
+                <div class="relative group w-full lg:w-80">
+                    <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-gray-400 group-focus-within:text-brand-800 transition"></i>
+                    <input type="text" id="context-search" placeholder="Buscar establecimiento..." 
+                           class="w-full pl-10 pr-4 py-2 bg-brand-800 text-white placeholder-white/40 border border-brand-800 rounded-lg text-sm focus:bg-white focus:text-gray-800 focus:placeholder-gray-400 focus:border-white transition-all outline-none shadow-inner">
+                    <div id="search-results" class="absolute top-full left-0 w-full mt-2 bg-white rounded-lg shadow-2xl border border-gray-100 hidden max-h-60 overflow-y-auto p-1 z-[1000]"></div>
+                </div>
+
+                <div class="bg-brand-800 px-3 py-1.5 rounded-lg border border-white/10 flex items-center gap-2 shadow-sm w-full lg:w-auto">
+                    <i data-lucide="filter" class="w-3 h-3 text-white/70"></i>
+                    <select id="main-filter" class="bg-transparent text-sm text-white outline-none cursor-pointer font-medium w-full lg:w-auto [&>option]:text-gray-800">
+                        <option value="all">Todas las Redes</option>
+                    </select>
+                </div>
             </div>
         </div>
+    </nav>
+
+    <main class="flex-1 p-3 lg:p-4 flex flex-col lg:grid lg:grid-cols-12 gap-4 h-full overflow-y-auto lg:overflow-hidden">
         
-        <div class="hidden md:flex items-center gap-6">
-            <div class="text-right border-r border-white/20 pr-6">
-                <p class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">ESTADO DEL SISTEMA</p>
-                <div class="flex items-center justify-end gap-2">
-                    <span class="relative flex h-2.5 w-2.5">
-                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                      <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
-                    </span>
-                    <span class="text-xs font-bold">Activo</span>
-                </div>
-            </div>
-            <div class="text-center">
-                <p class="text-[10px] uppercase text-gray-400 font-bold">REGISTROS</p>
-                <p class="text-lg font-bold" id="headerCount">0</p>
+        <div class="order-1 lg:order-2 lg:col-span-8 h-[45vh] lg:h-full bg-white rounded-xl shadow-sm border border-slate-200 p-1 relative group shrink-0">
+            <div id="map"></div>
+            <div class="absolute bottom-6 right-6 bg-white/95 backdrop-blur px-4 py-3 rounded-lg shadow-xl border border-gray-100 z-[400] text-xs pointer-events-none opacity-90 hidden lg:block">
+                <div class="font-bold text-brand-900 mb-2 border-b border-gray-200 pb-1">Simbología</div>
+                <div class="flex items-center gap-2 mb-1"><span class="w-2 h-2 rounded-full bg-slate-500"></span> Nivel 1 (Puestos)</div>
+                <div class="flex items-center gap-2 mb-1"><span class="w-2 h-2 rounded-full bg-orange-500"></span> Nivel 2 (Hospitales)</div>
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-700"></span> Nivel 3 (Institutos)</div>
             </div>
         </div>
-    </header>
 
-    <div class="flex flex-1 overflow-hidden layout relative">
-
-        <aside class="panel-side w-[420px] bg-white flex flex-col border-r border-gray-200 z-20 shadow-2xl">
+        <div class="order-2 lg:order-1 lg:col-span-4 flex flex-col gap-3 lg:h-full lg:overflow-hidden pb-10 lg:pb-0">
             
-            <div class="p-5 bg-white border-b border-gray-100 shadow-sm z-10 space-y-4">
-                
-                <div class="relative group">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-gray-400 group-focus-within:text-brand-800 transition"></i>
-                    <input type="text" id="textSearch" placeholder="Buscar coordinador, municipio..." 
-                        class="w-full pl-10 pr-4 py-3 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-800 focus:bg-white outline-none transition shadow-sm">
+            <div class="grid grid-cols-2 gap-2 shrink-0">
+                <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-brand-800">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase">Centros</p>
+                    <h2 class="text-2xl font-bold text-slate-800" id="kpi-total">0</h2>
                 </div>
+                <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-blue-500">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase">Municipios</p>
+                    <h2 class="text-2xl font-bold text-slate-800" id="kpi-muni">0</h2>
+                </div>
+            </div>
+
+            <div class="flex-col gap-3 flex lg:overflow-y-auto lg:pr-1">
                 
-                <div class="flex gap-2">
-                    <div class="relative flex-grow">
-                        <select id="filtroRed" class="w-full pl-3 pr-8 py-2.5 text-xs font-bold text-gray-700 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-800 outline-none appearance-none cursor-pointer uppercase tracking-wide">
-                            <option value="TODOS">MOSTRAR TODAS LAS REDES</option>
-                        </select>
-                        <i class="fa-solid fa-chevron-down absolute right-3 top-3 text-gray-400 text-xs pointer-events-none"></i>
+                <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-100">
+                    <div id="chart-nivel" class="w-full h-64"></div> </div>
+
+                <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-100">
+                    <div id="chart-subsector" class="w-full h-56"></div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden flex flex-col h-64 shrink-0">
+                    <div class="px-4 py-2 bg-slate-50 border-b border-slate-100 text-[11px] font-bold text-slate-500 uppercase flex justify-between items-center">
+                        <span>Listado</span> <span id="list-count" class="text-brand-800">0</span>
                     </div>
-                    
-                    <button onclick="descargarExcel()" class="bg-brand-green hover:bg-green-700 text-white px-3 py-2 rounded-lg shadow-sm transition transform active:scale-95 flex items-center justify-center gap-2" title="Descargar Reporte">
-                        <i class="fa-solid fa-file-csv"></i>
-                    </button>
+                    <div id="list-container" class="flex-1 overflow-y-auto p-1 h-full"></div>
                 </div>
             </div>
-
-            <div id="listaCards" class="flex-1 overflow-y-auto scroller p-3 space-y-3 bg-slate-50">
-                <div class="flex flex-col items-center justify-center h-40 text-gray-400 animate-pulse">
-                    <i class="fa-solid fa-server text-3xl mb-2"></i>
-                    <p class="text-xs font-medium">Sincronizando base de datos...</p>
-                </div>
-            </div>
-            
-            <div class="p-2 bg-gray-100 text-center text-[10px] text-gray-500 border-t border-gray-200">
-                Geolocalización en tiempo real • v3.5
-            </div>
-        </aside>
-
-        <main class="panel-map flex-1 relative bg-gray-200">
-            <div id="map" class="h-full w-full z-0"></div>
-            
-            <button onclick="resetVista()" class="absolute bottom-8 right-5 z-[400] bg-brand-800 text-white w-12 h-12 rounded-full shadow-2xl hover:bg-brand-900 transition flex items-center justify-center group tooltip border-2 border-white" title="Vista General">
-                <i class="fa-solid fa-globe text-xl group-hover:rotate-180 transition duration-500"></i>
-            </button>
-        </main>
-    </div>
-
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+        </div>
+    </main>
 
     <script>
-        // ==========================================
-        // CONFIGURACIÓN (URL CSV)
-        // ==========================================
-        const URL_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsuS6RyI-irn3lxS6rkTfTBUNWRJ89w2AgzPi5ExGu0mY61VNwAZUfyn84mzUI2wk1jU7fw7VHNNS/pub?output=csv"; 
-        // ==========================================
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR1DHcWzeJllMtxhIQlpaw6byDlbsji0L4w3SZaWTQDgdz2MdeJEGfB6peldYWgEeQUzgr0hP73zwwt/pub?output=csv';
 
-        var map, markersLayer, datosCompletos = [], datosVisibles = [];
-        var mapaMarcadores = {};
+        let map, layerGroup;
+        let globalData = [], filteredData = [], markersRef = {};
+        let selectedMarkerId = null;
 
-        // Capas
-        const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: 'OSM', maxZoom: 19 });
-        const satelite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Esri', maxZoom: 18 });
-        const voyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: 'CartoDB', maxZoom: 20 });
-        const oscuro = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: 'CartoDB', maxZoom: 20 });
-
-        document.addEventListener('DOMContentLoaded', () => {
-            initMap();
-            cargarDatos();
-            // Listeners Filtros
-            document.getElementById('textSearch').addEventListener('input', () => aplicarFiltros(false));
-            document.getElementById('filtroRed').addEventListener('change', () => aplicarFiltros(true));
-        });
+        // SVGs
+        const svgs = {
+            cross: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>`,
+            steth: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v6"/><path d="M16 15v6"/><circle cx="12" cy="22" r="2"/></svg>`,
+            build: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>`
+        };
 
         function initMap() {
-            map = L.map('map', { zoomControl: false, layers: [voyager] }).setView([-16.5000, -68.1500], 6);
-            L.control.zoom({ position: 'topright' }).addTo(map);
-            L.control.layers({ 
-                "Mapa Claro": voyager, 
-                "Estándar": osm, 
-                "Satélite": satelite, 
-                "Modo Oscuro": oscuro 
-            }, null, { position: 'topright' }).addTo(map);
-            markersLayer = L.layerGroup().addTo(map);
-        }
+            const voyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: 'CartoDB' });
+            const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Esri' });
+            const dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: 'CartoDB' });
+            const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: 'OSM' });
+            const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { attribution: 'Topo' });
+            const watercolor = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.jpg', { attribution: 'Stamen' });
 
-        function cargarDatos() {
-            if(!URL_CSV.startsWith("http")) { document.getElementById('listaCards').innerHTML = "<p class='p-4 text-red-600 text-xs text-center'>⚠️ URL CSV No Configurada</p>"; return; }
-
-            Papa.parse(URL_CSV, {
-                download: true, header: true, skipEmptyLines: true,
-                complete: function(results) {
-                    datosCompletos = results.data;
-                    llenarCombo();
-                    aplicarFiltros(true); 
-                }
+            map = L.map('map', {
+                center: [-16.5, -68.15],
+                zoom: window.innerWidth < 768 ? 5 : 6,
+                layers: [voyager],
+                zoomControl: false
             });
+
+            const baseLayers = {
+                "Mapa Moderno": voyager,
+                "Satelital HD": satellite,
+                "Modo Noche": dark,
+                "Calles Detalladas": osm,
+                "Topográfico": topo,
+                "Artístico": watercolor
+            };
+
+            L.control.layers(baseLayers).addTo(map);
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+            layerGroup = L.layerGroup().addTo(map);
         }
 
-        // --- RENDERIZADO DE "FICHA TÉCNICA" EN POPUP ---
-        function renderizar(datos, zoom) {
-            const lista = document.getElementById('listaCards');
-            lista.innerHTML = "";
-            markersLayer.clearLayers();
-            mapaMarcadores = {};
-            datosVisibles = datos;
-            
-            let bounds = L.latLngBounds();
-            let count = 0;
-
-            if(datos.length === 0) {
-                lista.innerHTML = `<div class="text-center mt-10 text-gray-400 text-xs">No se encontraron coordinaciones.</div>`;
-                document.getElementById('headerCount').innerText = "0";
+        function loadData() {
+            if(CSV_URL.includes("EXAMPLE")) {
+                processData([{NOMBRE: "DEMO CLINICAS", MUNICIPIO: "LA PAZ", RED: "RED 1", NIVEL: "3er Nivel", SUBSECTOR: "Público", Latitud: "-16.5", Longitud: "-68.1"}]);
                 return;
             }
+            Papa.parse(CSV_URL, { download: true, header: true, skipEmptyLines: true, complete: (res) => processData(res.data) });
+        }
 
-            datos.forEach((fila, index) => {
-                const lat = parseFloat(fila.LATITUD || fila.latitud);
-                const lng = parseFloat(fila.LONGITUD || fila.longitud);
-                const red = (fila.RED || fila.red || "Sin Asignar").toUpperCase();
-                const resp = fila.RESPONSABLE || fila.responsable || "Sin Nombre";
-                const dir = fila.DIRECCION || fila.direccion || "No registrada";
-                const id = `card-${index}`;
+        function processData(data) {
+            globalData = data.map((d, i) => {
+                let lat = parseFloat(d.Latitud?.replace(',', '.'));
+                let lng = parseFloat(d.Longitud?.replace(',', '.'));
+                return { ...d, _lat: lat, _lng: lng, _id: i };
+            }).filter(d => !isNaN(d._lat) && !isNaN(d._lng));
+            populateSelect();
+            updateDashboard();
+        }
 
-                if (!isNaN(lat) && !isNaN(lng)) {
-                    count++;
-                    
-                    // 1. HTML DEL POPUP (FICHA TÉCNICA DINÁMICA)
-                    const popupHTML = `
-                        <div class="font-sans">
-                            <div class="bg-gradient-to-r from-brand-900 to-brand-800 text-white p-3">
-                                <p class="text-[10px] font-bold opacity-75 uppercase tracking-wider">Coordinación de Red</p>
-                                <h3 class="font-bold text-sm leading-tight mt-1">${red}</h3>
-                            </div>
-                            <div class="p-4 bg-white">
-                                <div class="mb-3">
-                                    <p class="text-[10px] text-gray-400 font-bold uppercase mb-1"><i class="fa-solid fa-user-doctor mr-1"></i> Responsable</p>
-                                    <p class="text-sm font-bold text-gray-800 border-b border-gray-100 pb-2">${resp}</p>
-                                </div>
-                                <div class="mb-3">
-                                    <p class="text-[10px] text-gray-400 font-bold uppercase mb-1"><i class="fa-solid fa-map-pin mr-1"></i> Ubicación</p>
-                                    <p class="text-xs text-gray-600 leading-relaxed">${dir}</p>
-                                </div>
-                                <div class="flex items-center justify-between mt-4 pt-2 border-t border-gray-100">
-                                    <code class="text-[10px] text-brand-800 font-mono bg-brand-50 px-2 py-1 rounded">
-                                        ${lat.toFixed(4)}, ${lng.toFixed(4)}
-                                    </code>
-                                    <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" 
-                                       class="bg-gray-800 hover:bg-black text-white text-[10px] font-bold px-3 py-1.5 rounded-md transition flex items-center gap-1">
-                                       GPS <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                                    </a>
-                                </div>
-                            </div>
+        function updateDashboard() {
+            const filterVal = document.getElementById('main-filter').value;
+            filteredData = filterVal === 'all' ? globalData : globalData.filter(d => d.RED === filterVal);
+            renderMap();
+            renderCharts();
+            renderList();
+        }
+
+        function renderMap() {
+            layerGroup.clearLayers();
+            markersRef = {};
+            selectedMarkerId = null;
+            const bounds = L.latLngBounds();
+
+            filteredData.forEach(d => {
+                bounds.extend([d._lat, d._lng]);
+                
+                let iconSvg = svgs.cross; let cssClass = 'icon-l1'; let size = 28;
+                if(d.NIVEL && d.NIVEL.includes('2')) { iconSvg = svgs.steth; cssClass = 'icon-l2'; size = 32; }
+                if(d.NIVEL && d.NIVEL.includes('3')) { iconSvg = svgs.build; cssClass = 'icon-l3'; size = 38; }
+
+                const icon = L.divIcon({
+                    className: '',
+                    html: `<div class="health-icon-container ${cssClass}" style="width:${size}px; height:${size}px;">${iconSvg}</div>`,
+                    iconSize: [size, size],
+                    iconAnchor: [size/2, size/2]
+                });
+
+                const marker = L.marker([d._lat, d._lng], { icon: icon });
+
+                const popup = `
+                    <div class="font-sans">
+                        <div class="bg-brand-900 p-3 relative">
+                            <span class="text-[9px] text-white/70 uppercase font-bold">COD: ${d.COD_SNIS||'--'}</span>
+                            <h3 class="font-bold text-white text-sm pr-4 leading-tight">${d.NOMBRE}</h3>
                         </div>
-                    `;
-
-                    const marker = L.marker([lat, lng]);
-                    marker.bindPopup(popupHTML);
-                    marker.on('click', () => iluminarTarjeta(id));
-                    markersLayer.addLayer(marker);
-                    bounds.extend([lat, lng]);
-                    mapaMarcadores[id] = { marker, lat, lng };
-
-                    // 2. HTML DE LA TARJETA LATERAL
-                    const card = document.createElement('div');
-                    card.id = id;
-                    card.className = "bg-white p-4 rounded-xl border border-gray-100 shadow-sm cursor-pointer hover:shadow-lg transition-all duration-300 border-l-4 border-l-transparent group";
-                    card.onclick = () => enfocarPunto(id);
-
-                    card.innerHTML = `
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="bg-gray-100 text-gray-600 text-[10px] font-extrabold px-2 py-0.5 rounded uppercase tracking-wide group-hover:bg-brand-50 group-hover:text-brand-800 transition">${red}</span>
-                            <i class="fa-solid fa-location-crosshairs text-gray-300 group-hover:text-brand-600 transition"></i>
+                        <div class="p-3 bg-white text-xs text-slate-500 space-y-1">
+                            <div class="flex justify-between"><span>Muni:</span> <b class="text-slate-700">${d.MUNICIPIO}</b></div>
+                            <div class="flex justify-between"><span>Red:</span> <b class="text-slate-700">${d.RED}</b></div>
+                            <div class="mt-2 text-center bg-slate-100 rounded py-1 text-brand-900 font-bold">${d.NIVEL}</div>
                         </div>
-                        <h4 class="text-sm font-bold text-gray-800 mb-1 leading-snug">${resp}</h4>
-                        <p class="text-xs text-gray-400 line-clamp-1 mb-2"><i class="fa-regular fa-building mr-1"></i> ${dir}</p>
-                    `;
-                    lista.appendChild(card);
-                }
+                    </div>`;
+
+                marker.bindPopup(popup);
+                marker.addTo(layerGroup);
+                markersRef[d._id] = marker;
+                marker.on('click', () => highlightMarker(d._id));
             });
 
-            document.getElementById('headerCount').innerText = count;
-            if (count > 0 && zoom) map.fitBounds(bounds, { padding: [80, 80], maxZoom: 16 });
+            if(filteredData.length > 0) map.fitBounds(bounds, { padding: [50, 50] });
         }
 
-        // --- FILTROS Y LÓGICA ---
-        function aplicarFiltros(zoom) {
-            const txt = document.getElementById('textSearch').value.toLowerCase();
-            const red = document.getElementById('filtroRed').value;
-            const res = datosCompletos.filter(d => {
-                const r = (d.RED || d.red || "").toString();
-                const n = (d.RESPONSABLE || d.responsable || "").toLowerCase();
-                const z = (d.DIRECCION || d.direccion || "").toLowerCase();
-                return (red === "TODOS" || r === red) && (n.includes(txt) || z.includes(txt) || r.toLowerCase().includes(txt));
-            });
-            renderizar(res, zoom);
-        }
-
-        function llenarCombo() {
-            const sel = document.getElementById('filtroRed');
-            [...new Set(datosCompletos.map(d => d.RED || d.red))].filter(Boolean).sort().forEach(r => {
-                const o = document.createElement('option'); o.value = r; o.innerText = r; sel.appendChild(o);
-            });
-        }
-
-        // --- INTERACCIONES ---
-        function enfocarPunto(id) {
-            const obj = mapaMarcadores[id];
-            if(obj) {
-                document.querySelectorAll('.card-active').forEach(c => c.classList.remove('card-active'));
-                document.getElementById(id).classList.add('card-active');
-                map.flyTo([obj.lat, obj.lng], 17, { duration: 1.5 });
-                setTimeout(() => obj.marker.openPopup(), 500);
+        function highlightMarker(id) {
+            if(window.innerWidth < 1024) document.getElementById('map').scrollIntoView({ behavior: 'smooth' });
+            if(selectedMarkerId !== null && markersRef[selectedMarkerId]) {
+                const el = markersRef[selectedMarkerId].getElement()?.querySelector('.health-icon-container');
+                if(el) el.classList.remove('marker-selected');
+            }
+            const marker = markersRef[id];
+            if(marker) {
+                const el = marker.getElement()?.querySelector('.health-icon-container');
+                if(el) { el.classList.add('marker-selected'); selectedMarkerId = id; }
+                map.flyTo(marker.getLatLng(), 16, { duration: 1.5 });
+                marker.openPopup();
             }
         }
-        function iluminarTarjeta(id) {
-            const el = document.getElementById(id);
-            if(el) {
-                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                document.querySelectorAll('.card-active').forEach(c => c.classList.remove('card-active'));
-                el.classList.add('card-active');
-            }
+
+        // --- GRÁFICOS CON LEYENDAS EXPLICATIVAS Y DESCARGA ---
+        function renderCharts() {
+            document.getElementById('kpi-total').innerText = filteredData.length;
+            document.getElementById('kpi-muni').innerText = new Set(filteredData.map(d=>d.MUNICIPIO)).size;
+            document.getElementById('list-count').innerText = filteredData.length;
+            
+            const countBy = (k) => { const c={}; filteredData.forEach(d=>c[d[k]||'Sin dato']=(c[d[k]||'Sin dato']||0)+1); return Object.entries(c).sort((a,b)=>b[1]-a[1]); };
+
+            // Data Preparation
+            const dataSub = countBy('SUBSECTOR');
+            
+            // Mapeo estricto de colores para Niveles
+            const nivelCounts = countBy('NIVEL');
+            const nivelData = nivelCounts.map(([name, y]) => {
+                let color = '#64748b'; // Default Grey
+                if(name.includes('2')) color = '#f97316'; // Orange
+                if(name.includes('3')) color = '#b91c1c'; // Red
+                return { name, y, color };
+            });
+
+            // 1. CHART NIVELES (DONUT CON LEYENDA DETALLADA)
+            Highcharts.chart('chart-nivel', {
+                chart: { type: 'pie', backgroundColor: 'transparent' },
+                title: { text: 'Distribución por Nivel', align: 'left' },
+                plotOptions: {
+                    pie: {
+                        innerSize: '50%', 
+                        dataLabels: { enabled: false },
+                        showInLegend: true
+                    }
+                },
+                // LEYENDA DINÁMICA
+                legend: {
+                    layout: 'vertical', align: 'right', verticalAlign: 'middle',
+                    itemMarginTop: 5,
+                    itemStyle: { fontSize: '11px', color: '#334155', fontWeight: '500' },
+                    labelFormat: '{name}: <b>{y}</b> ({percentage:.1f}%)' // Muestra Nombre: Cantidad (Porcentaje)
+                },
+                series: [{ name: 'Centros', data: nivelData }]
+            });
+
+            // 2. CHART SUBSECTORES (SEMI CIRCLE CON LEYENDA CLARA)
+            Highcharts.chart('chart-subsector', {
+                chart: { type: 'pie', backgroundColor: 'transparent', marginBottom: 30 },
+                title: { text: 'Subsectores', align: 'center', verticalAlign: 'middle', y: 15 },
+                plotOptions: {
+                    pie: {
+                        startAngle: -90, endAngle: 90, center: ['50%', '75%'], size: '110%',
+                        innerSize: '60%', dataLabels: { enabled: false }, showInLegend: true
+                    }
+                },
+                legend: {
+                    enabled: true,
+                    labelFormat: '{name}: <b>{y}</b>' // Muestra Nombre: Cantidad
+                },
+                series: [{ 
+                    name: 'Total', 
+                    data: dataSub.map(d => ({ name: d[0], y: d[1] })),
+                    colors: ['#0ea5e9', '#6366f1', '#ec4899', '#8b5cf6', '#14b8a6'] 
+                }]
+            });
         }
-        function resetVista() {
-            document.getElementById('textSearch').value = "";
-            document.getElementById('filtroRed').value = "TODOS";
-            aplicarFiltros(true);
+
+        function renderList() {
+            const list = document.getElementById('list-container');
+            list.innerHTML = '';
+            filteredData.slice(0, 50).forEach(d => {
+                const el = document.createElement('div');
+                el.className = "p-2 hover:bg-slate-50 cursor-pointer border-b border-slate-50 flex items-center gap-2 text-xs text-slate-700";
+                let iconClass = 'text-slate-500';
+                if(d.NIVEL && d.NIVEL.includes('2')) iconClass = 'text-orange-600';
+                if(d.NIVEL && d.NIVEL.includes('3')) iconClass = 'text-red-700';
+                el.innerHTML = `<i data-lucide="circle-dot" class="w-3 h-3 ${iconClass} shrink-0"></i> <span class="truncate">${d.NOMBRE}</span>`;
+                el.onclick = () => highlightMarker(d._id);
+                list.appendChild(el);
+            });
+            lucide.createIcons();
         }
-        function descargarExcel() {
-            if(datosVisibles.length===0) return Swal.fire('Info', 'No hay datos para exportar', 'info');
-            const data = datosVisibles.map(i => ({
-                "RED": (i.RED||i.red||"").toUpperCase(),
-                "RESPONSABLE": (i.RESPONSABLE||i.responsable||"").toUpperCase(),
-                "DIRECCION": i.DIRECCION||i.direccion,
-                "LAT": i.LATITUD||i.latitud,
-                "LON": i.LONGITUD||i.longitud
-            }));
-            const csv = Papa.unparse(data);
-            const blob = new Blob(["\uFEFF"+csv], {type: "text/csv;charset=utf-8;"});
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `Reporte_GeoVisor_${new Date().toISOString().slice(0,10)}.csv`;
-            link.click();
+
+        document.getElementById('context-search').addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase();
+            const res = document.getElementById('search-results');
+            res.innerHTML = '';
+            if(val.length < 2) { res.classList.add('hidden'); return; }
+            const matches = filteredData.filter(d => d.NOMBRE && d.NOMBRE.toLowerCase().includes(val)).slice(0, 10);
+            if(matches.length > 0) {
+                res.classList.remove('hidden');
+                matches.forEach(d => {
+                    const el = document.createElement('div');
+                    el.className = "p-2.5 border-b border-gray-100 hover:bg-slate-50 cursor-pointer text-xs font-medium text-slate-700";
+                    el.innerText = d.NOMBRE;
+                    el.onclick = () => { highlightMarker(d._id); res.classList.add('hidden'); document.getElementById('context-search').value = ''; };
+                    res.appendChild(el);
+                });
+            } else { res.classList.remove('hidden'); res.innerHTML = `<div class="p-3 text-xs text-gray-400 italic">No encontrado.</div>`; }
+        });
+
+        function populateSelect() {
+            const sel = document.getElementById('main-filter');
+            [...new Set(globalData.map(d=>d.RED))].sort().forEach(r => { if(r) sel.innerHTML += `<option value="${r}">${r}</option>`; });
+            sel.addEventListener('change', updateDashboard);
         }
+
+        initMap();
+        loadData();
     </script>
 </body>
 </html>
