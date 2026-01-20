@@ -2,409 +2,359 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUISD - SEDES LA PAZ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estructura - GeoSalud</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/modules/variable-pie.js"></script>
-    <script src="https://code.highcharts.com/modules/exporting.js"></script>     <script src="https://code.highcharts.com/modules/export-data.js"></script>   <script src="https://code.highcharts.com/modules/accessibility.js"></script>
-    
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: { brand: { 800: '#7f1d1d', 900: '#450a0a' } },
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    boxShadow: { 'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.37)' }
-                }
-            }
-        }
-        
-        // Highcharts Modern Theme & Export Config
-        Highcharts.setOptions({
-            chart: { style: { fontFamily: 'Inter, sans-serif' } },
-            title: { style: { color: '#334155', fontWeight: '700', fontSize: '13px' } },
-            tooltip: { 
-                backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-                borderColor: '#e2e8f0', 
-                borderRadius: 8,
-                shadow: true
-            },
-            exporting: {
-                enabled: true, // Habilita descarga
-                buttons: {
-                    contextButton: {
-                        menuItems: ["viewFullscreen", "printChart", "separator", "downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG"],
-                        symbolStroke: '#64748b',
-                        theme: { fill: '#f8fafc' }
-                    }
-                }
-            },
-            credits: { enabled: false }
-        });
-    </script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; color: #334155; }
-        
-        #map { width: 100%; height: 100%; z-index: 1; border-radius: 0.75rem; }
-        
-        /* Control de Capas Moderno */
-        .leaflet-control-layers {
-            border: none !important; border-radius: 12px !important;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
-            padding: 10px !important; font-size: 11px; font-weight: 500;
-            color: #475569; background: rgba(255, 255, 255, 0.98);
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
 
-        /* Iconos SVG Markers */
-        .health-icon-container {
+        /* --- 1. ESTILOS DE MARCADORES (PINS) MEJORADOS --- */
+        .pin-marker {
+            width: 36px; height: 36px;
+            border-radius: 50% 50% 50% 0;
+            background: #fff;
+            position: absolute;
+            transform: rotate(-45deg);
+            box-shadow: -3px 5px 5px rgba(0,0,0,0.3);
             display: flex; align-items: center; justify-content: center;
-            border-radius: 50%; border: 2px solid white;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 2px solid white;
+            transition: all 0.2s ease-out;
         }
-        .health-icon-container svg { width: 60%; height: 60%; }
-        
-        /* Colores Específicos */
-        .icon-l1 { background: #64748b; color: white; } /* Slate */
-        .icon-l2 { background: #f97316; color: white; } /* Orange */
-        .icon-l3 { background: #b91c1c; color: white; } /* Red */
-        
-        /* Radar Animation */
-        .marker-selected { animation: radar-pulse 2s infinite; border-color: #fff; z-index: 1000 !important; }
-        @keyframes radar-pulse {
-            0% { box-shadow: 0 0 0 0 rgba(185, 28, 28, 0.7); }
-            70% { box-shadow: 0 0 0 25px rgba(185, 28, 28, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(185, 28, 28, 0); }
+        .pin-marker::after {
+            content: ''; width: 20px; height: 20px;
+            border-radius: 50%; background: rgba(255,255,255,0.2);
+            position: absolute;
+        }
+        /* Icono dentro del Pin (se rota 45deg para corregir la rotación del padre) */
+        .pin-icon {
+            transform: rotate(45deg);
+            color: white;
+            font-size: 18px;
+            z-index: 2;
+        }
+        /* Colores por Nivel */
+        .pin-l1 { background: linear-gradient(135deg, #10b981 0%, #059669 100%); } /* Verde */
+        .pin-l2 { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); } /* Naranja */
+        .pin-l3 { background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%); } /* Rojo Sangre */
+
+        /* Animación Hover */
+        .custom-div-icon:hover .pin-marker {
+            transform: rotate(-45deg) scale(1.2) translateY(-10px);
+            z-index: 999;
         }
 
-        /* Popup */
-        .leaflet-popup-content-wrapper { padding: 0 !important; border-radius: 12px !important; overflow: hidden; }
-        .leaflet-popup-content { margin: 0 !important; width: 280px !important; }
-        .leaflet-popup-tip { background: #450a0a !important; }
-
-        @media (min-width: 1024px) {
-            ::-webkit-scrollbar { width: 6px; }
-            ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        /* --- 2. POPUP MODERNO (Glassmorphism) --- */
+        .modern-popup .leaflet-popup-content-wrapper {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            padding: 0; border: 1px solid white;
         }
+        .modern-popup .leaflet-popup-content { margin: 0; width: 300px !important; }
+        .modern-popup .leaflet-popup-tip { background: white; }
+        .modern-popup a.leaflet-popup-close-button {
+            color: white !important; top: 8px; right: 8px;
+            background: rgba(0,0,0,0.2); border-radius: 50%;
+            width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+        }
+
+        /* Utilidades */
+        .custom-scroll::-webkit-scrollbar { width: 5px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .view-panel { display: none; height: calc(100vh - 70px); }
+        .view-panel.active { display: grid; }
     </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden bg-slate-50">
+<body class="h-screen flex flex-col overflow-hidden text-slate-800">
 
-    <nav class="bg-brand-900 z-50 shrink-0 shadow-xl">
-        <div class="px-4 py-3 lg:px-6 lg:h-16 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-            <div class="flex items-center gap-3">
-                <div class="bg-white/10 p-2 rounded-lg text-white border border-white/20"><i data-lucide="bar-chart-2" class="w-5 h-5"></i></div>
+    <nav class="bg-[#8B0000] text-white shadow-xl z-50 h-[70px] flex-none">
+        <div class="container mx-auto px-6 h-full flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="bg-white/10 p-2 rounded-xl backdrop-blur border border-white/10">
+                    <i class="ph-fill ph-hospital text-2xl"></i>
+                </div>
                 <div>
-                    <h1 class="font-bold text-white text-lg leading-none">SUISD <span class="font-light opacity-80">Estrucutura</span></h1>
-                    <p class="text-[10px] text-white/60 font-medium uppercase mt-0.5">Establecimientos de Salud</p>
+                    <h1 class="text-lg font-bold tracking-tight leading-none">SEDES LA PAZ / SUISD</h1>
+                    <p class="text-[10px] text-red-200 uppercase tracking-widest mt-0.5">Visor Establecimientos de Salud</p>
                 </div>
             </div>
-            
-            <div class="flex flex-col lg:flex-row gap-3 lg:items-center w-full lg:w-auto">
-                <div class="relative group w-full lg:w-80">
-                    <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-gray-400 group-focus-within:text-brand-800 transition"></i>
-                    <input type="text" id="context-search" placeholder="Buscar establecimiento..." 
-                           class="w-full pl-10 pr-4 py-2 bg-brand-800 text-white placeholder-white/40 border border-brand-800 rounded-lg text-sm focus:bg-white focus:text-gray-800 focus:placeholder-gray-400 focus:border-white transition-all outline-none shadow-inner">
-                    <div id="search-results" class="absolute top-full left-0 w-full mt-2 bg-white rounded-lg shadow-2xl border border-gray-100 hidden max-h-60 overflow-y-auto p-1 z-[1000]"></div>
-                </div>
-
-                <div class="bg-brand-800 px-3 py-1.5 rounded-lg border border-white/10 flex items-center gap-2 shadow-sm w-full lg:w-auto">
-                    <i data-lucide="filter" class="w-3 h-3 text-white/70"></i>
-                    <select id="main-filter" class="bg-transparent text-sm text-white outline-none cursor-pointer font-medium w-full lg:w-auto [&>option]:text-gray-800">
-                        <option value="all">Todas las Redes</option>
-                    </select>
-                </div>
+            <div class="flex bg-black/20 p-1 rounded-xl gap-1">
+                <button onclick="setView('map')" id="btn-map" class="flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all bg-white text-[#8B0000] shadow-md transform hover:scale-105">
+                    <i class="ph-bold ph-map-pin text-lg"></i> Mapa
+                </button>
+                <button onclick="setView('stats')" id="btn-stats" class="flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all text-red-100 hover:bg-white/10">
+                    <i class="ph-bold ph-chart-bar text-lg"></i> Estadísticas
+                </button>
             </div>
         </div>
     </nav>
 
-    <main class="flex-1 p-3 lg:p-4 flex flex-col lg:grid lg:grid-cols-12 gap-4 h-full overflow-y-auto lg:overflow-hidden">
+    <div id="view-map" class="view-panel active container mx-auto p-4 md:p-6 gap-6 grid-cols-1 lg:grid-cols-12 min-h-0">
         
-        <div class="order-1 lg:order-2 lg:col-span-8 h-[45vh] lg:h-full bg-white rounded-xl shadow-sm border border-slate-200 p-1 relative group shrink-0">
-            <div id="map"></div>
-            <div class="absolute bottom-6 right-6 bg-white/95 backdrop-blur px-4 py-3 rounded-lg shadow-xl border border-gray-100 z-[400] text-xs pointer-events-none opacity-90 hidden lg:block">
-                <div class="font-bold text-brand-900 mb-2 border-b border-gray-200 pb-1">Simbología</div>
-                <div class="flex items-center gap-2 mb-1"><span class="w-2 h-2 rounded-full bg-slate-500"></span> Nivel 1 (Puestos)</div>
-                <div class="flex items-center gap-2 mb-1"><span class="w-2 h-2 rounded-full bg-orange-500"></span> Nivel 2 (Hospitales)</div>
-                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-700"></span> Nivel 3 (Institutos)</div>
-            </div>
-        </div>
-
-        <div class="order-2 lg:order-1 lg:col-span-4 flex flex-col gap-3 lg:h-full lg:overflow-hidden pb-10 lg:pb-0">
-            
-            <div class="grid grid-cols-2 gap-2 shrink-0">
-                <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-brand-800">
-                    <p class="text-[10px] font-bold text-gray-400 uppercase">Centros</p>
-                    <h2 class="text-2xl font-bold text-slate-800" id="kpi-total">0</h2>
+        <div class="lg:col-span-4 flex flex-col gap-4 h-full min-h-0">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex-none">
+                <div class="relative group mb-4">
+                    <input type="text" id="inputSearch" placeholder="Buscar establecimiento..." class="w-full pl-10 pr-4 py-3 bg-gray-50 rounded-xl text-sm font-medium focus:ring-2 focus:ring-red-900 outline-none transition">
+                    <i class="ph-bold ph-magnifying-glass absolute left-3 top-3.5 text-gray-400"></i>
                 </div>
-                <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-blue-500">
-                    <p class="text-[10px] font-bold text-gray-400 uppercase">Municipios</p>
-                    <h2 class="text-2xl font-bold text-slate-800" id="kpi-muni">0</h2>
+                <div class="flex gap-3">
+                    <select id="selRed" onchange="filterRed()" class="w-1/2 p-2 bg-gray-50 rounded-lg text-xs font-bold text-gray-600 outline-none"><option value="">Todas las Redes</option></select>
+                    <select id="selMuni" onchange="execFilter()" class="w-1/2 p-2 bg-gray-50 rounded-lg text-xs font-bold text-gray-600 outline-none" disabled><option value="">Todos</option></select>
                 </div>
             </div>
 
-            <div class="flex-col gap-3 flex lg:overflow-y-auto lg:pr-1">
-                
-                <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-100">
-                    <div id="chart-nivel" class="w-full h-64"></div> </div>
-
-                <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-100">
-                    <div id="chart-subsector" class="w-full h-56"></div>
-                </div>
-
-                <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden flex flex-col h-64 shrink-0">
-                    <div class="px-4 py-2 bg-slate-50 border-b border-slate-100 text-[11px] font-bold text-slate-500 uppercase flex justify-between items-center">
-                        <span>Listado</span> <span id="list-count" class="text-brand-800">0</span>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 flex-1 overflow-hidden flex flex-col">
+                <div class="p-3 bg-gray-50 border-b flex justify-between items-center text-[10px] text-gray-500 font-bold uppercase">
+                    <span>Resultados (<span id="counter">0</span>)</span>
+                    <div class="flex gap-2">
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> N1</span>
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> N2</span>
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-800"></span> N3</span>
                     </div>
-                    <div id="list-container" class="flex-1 overflow-y-auto p-1 h-full"></div>
+                </div>
+                <div id="resultList" class="flex-1 overflow-y-auto p-3 space-y-2 custom-scroll"></div>
+                <div class="p-3 border-t flex justify-center gap-4 bg-white">
+                    <button onclick="pg(-1)" class="p-1 hover:bg-gray-100 rounded"><i class="ph-bold ph-caret-left"></i></button>
+                    <span id="pgInfo" class="text-xs font-bold pt-1">1</span>
+                    <button onclick="pg(1)" class="p-1 hover:bg-gray-100 rounded"><i class="ph-bold ph-caret-right"></i></button>
                 </div>
             </div>
         </div>
-    </main>
+
+        <div class="lg:col-span-8 h-full rounded-2xl overflow-hidden shadow-lg border border-gray-200 relative group">
+            <div id="map" class="h-full w-full z-0 bg-slate-100"></div>
+            
+            <div class="absolute top-4 right-4 z-[400] bg-white rounded-xl shadow-lg border border-gray-100 p-1 flex flex-col gap-1">
+                <button onclick="setLayer('osm')" class="flex items-center gap-2 p-2 hover:bg-blue-50 rounded-lg text-gray-600 text-xs font-bold transition w-full text-left">
+                    <i class="ph-fill ph-road-horizon text-blue-600 text-lg"></i> Calles (OSM)
+                </button>
+                <button onclick="setLayer('clean')" class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg text-gray-600 text-xs font-bold transition w-full text-left">
+                    <i class="ph-fill ph-map-trifold text-gray-400 text-lg"></i> Limpio
+                </button>
+                <button onclick="setLayer('sat')" class="flex items-center gap-2 p-2 hover:bg-green-50 rounded-lg text-gray-600 text-xs font-bold transition w-full text-left">
+                    <i class="ph-fill ph-globe-hemisphere-west text-green-700 text-lg"></i> Satélite
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-stats" class="view-panel container mx-auto p-6 overflow-y-auto custom-scroll">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-10">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"><div id="chart1" class="w-full h-[300px]"></div></div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"><div id="chart2" class="w-full h-[300px]"></div></div>
+            <div class="bg-gradient-to-br from-[#8B0000] to-[#5a0000] p-6 rounded-2xl shadow-lg text-white flex flex-col justify-center items-center">
+                <i class="ph-duotone ph-buildings text-5xl mb-2 opacity-80"></i>
+                <span class="text-4xl font-bold" id="kpi-total">0</span>
+                <span class="text-sm uppercase tracking-widest opacity-70">Total Centros</span>
+            </div>
+            <div class="md:col-span-2 lg:col-span-3 bg-white p-6 rounded-2xl shadow-sm border border-gray-100"><div id="chart3" class="w-full h-[400px]"></div></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 
     <script>
-        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR1DHcWzeJllMtxhIQlpaw6byDlbsji0L4w3SZaWTQDgdz2MdeJEGfB6peldYWgEeQUzgr0hP73zwwt/pub?output=csv';
+        // === CONFIGURACIÓN ===
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR1DHcWzeJllMtxhIQlpaw6byDlbsji0L4w3SZaWTQDgdz2MdeJEGfB6peldYWgEeQUzgr0hP73zwwt/pub?output=csv'; // PEGAR ENLACE
 
-        let map, layerGroup;
-        let globalData = [], filteredData = [], markersRef = {};
-        let selectedMarkerId = null;
+        let rawData=[], filteredData=[], markers={}, map, layerGroup, page=1;
+        const perPage=10;
 
-        // SVGs
-        const svgs = {
-            cross: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>`,
-            steth: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v6"/><path d="M16 15v6"/><circle cx="12" cy="22" r="2"/></svg>`,
-            build: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>`
-        };
+        document.addEventListener('DOMContentLoaded', () => {
+            initMap();
+            initCharts();
+            loadData();
+            document.getElementById('inputSearch').addEventListener('input', () => { page=1; execFilter(); });
+        });
 
+        // --- MAPA ---
         function initMap() {
-            const voyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: 'CartoDB' });
-            const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Esri' });
-            const dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: 'CartoDB' });
-            const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: 'OSM' });
-            const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { attribution: 'Topo' });
-            const watercolor = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.jpg', { attribution: 'Stamen' });
-
-            map = L.map('map', {
-                center: [-16.5, -68.15],
-                zoom: window.innerWidth < 768 ? 5 : 6,
-                layers: [voyager],
-                zoomControl: false
-            });
-
-            const baseLayers = {
-                "Mapa Moderno": voyager,
-                "Satelital HD": satellite,
-                "Modo Noche": dark,
-                "Calles Detalladas": osm,
-                "Topográfico": topo,
-                "Artístico": watercolor
-            };
-
-            L.control.layers(baseLayers).addTo(map);
+            map = L.map('map', { zoomControl: false }).setView([-16.5000, -68.1193], 12); // Zoom inicial más cercano
             L.control.zoom({ position: 'bottomright' }).addTo(map);
+            setLayer('osm'); // POR DEFECTO: CALLES DETALLADAS
             layerGroup = L.layerGroup().addTo(map);
         }
 
+        function setLayer(type) {
+            map.eachLayer(l => { if(l instanceof L.TileLayer) map.removeLayer(l); });
+            let url = '';
+            // CAPA 1: Calles Detalladas (OpenStreetMap Standard)
+            if(type === 'osm') url = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+            // CAPA 2: Limpio (CartoDB Light)
+            else if(type === 'clean') url = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+            // CAPA 3: Satélite (Esri)
+            else if(type === 'sat') url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+            
+            L.tileLayer(url, { attribution: 'Datos SNIS' }).addTo(map);
+        }
+
+        // --- DATOS ---
         function loadData() {
-            if(CSV_URL.includes("EXAMPLE")) {
-                processData([{NOMBRE: "DEMO CLINICAS", MUNICIPIO: "LA PAZ", RED: "RED 1", NIVEL: "3er Nivel", SUBSECTOR: "Público", Latitud: "-16.5", Longitud: "-68.1"}]);
-                return;
-            }
-            Papa.parse(CSV_URL, { download: true, header: true, skipEmptyLines: true, complete: (res) => processData(res.data) });
+            if(CSV_URL.includes('TU_ENLACE')) return alert("⚠️ Configura el CSV en el HTML");
+            Papa.parse(CSV_URL, {
+                download: true, header: true, dynamicTyping: true, skipEmptyLines: true,
+                complete: (res) => {
+                    rawData = res.data.filter(r => r.Latitud && r.Longitud && r.NOMBRE);
+                    const redes = [...new Set(rawData.map(d=>d.RED))].sort();
+                    redes.forEach(r => document.getElementById('selRed').add(new Option(r,r)));
+                    execFilter();
+                }
+            });
         }
 
-        function processData(data) {
-            globalData = data.map((d, i) => {
-                let lat = parseFloat(d.Latitud?.replace(',', '.'));
-                let lng = parseFloat(d.Longitud?.replace(',', '.'));
-                return { ...d, _lat: lat, _lng: lng, _id: i };
-            }).filter(d => !isNaN(d._lat) && !isNaN(d._lng));
-            populateSelect();
-            updateDashboard();
+        function filterRed() {
+            const red = document.getElementById('selRed').value;
+            const m = document.getElementById('selMuni');
+            m.innerHTML = '<option value="">Todos</option>'; m.disabled = !red;
+            if(red) [...new Set(rawData.filter(d=>d.RED===red).map(d=>d.MUNICIPIO))].sort().forEach(mu=>m.add(new Option(mu,mu)));
+            page=1; execFilter();
         }
 
-        function updateDashboard() {
-            const filterVal = document.getElementById('main-filter').value;
-            filteredData = filterVal === 'all' ? globalData : globalData.filter(d => d.RED === filterVal);
-            renderMap();
-            renderCharts();
-            renderList();
+        function execFilter() {
+            const txt = document.getElementById('inputSearch').value.toLowerCase();
+            const red = document.getElementById('selRed').value;
+            const mun = document.getElementById('selMuni').value;
+
+            filteredData = rawData.filter(d => {
+                const mt = (d.NOMBRE||'').toLowerCase().includes(txt) || String(d.COD_SNIS).includes(txt);
+                return mt && (!red || d.RED===red) && (!mun || d.MUNICIPIO===mun);
+            });
+
+            document.getElementById('counter').innerText = filteredData.length;
+            document.getElementById('kpi-total').innerText = filteredData.length;
+            renderMap(); renderList(); updateCharts();
         }
 
+        // --- RENDER MAPA MEJORADO ---
         function renderMap() {
             layerGroup.clearLayers();
-            markersRef = {};
-            selectedMarkerId = null;
+            markers = {};
             const bounds = L.latLngBounds();
 
-            filteredData.forEach(d => {
-                bounds.extend([d._lat, d._lng]);
-                
-                let iconSvg = svgs.cross; let cssClass = 'icon-l1'; let size = 28;
-                if(d.NIVEL && d.NIVEL.includes('2')) { iconSvg = svgs.steth; cssClass = 'icon-l2'; size = 32; }
-                if(d.NIVEL && d.NIVEL.includes('3')) { iconSvg = svgs.build; cssClass = 'icon-l3'; size = 38; }
+            filteredData.forEach(item => {
+                // LOGICA DE COLORES E ICONOS POR NIVEL
+                let lvl = String(item.NIVEL).toLowerCase();
+                let cssClass = 'pin-l1'; // Default Verde
+                let iconClass = 'ph-first-aid'; // Default Cruz
+                let headerColor = 'bg-emerald-500';
 
+                if(lvl.includes('2') || lvl.includes('segundo')) {
+                    cssClass = 'pin-l2'; // Naranja
+                    iconClass = 'ph-hospital'; // Hospital
+                    headerColor = 'bg-amber-500';
+                } else if (lvl.includes('3') || lvl.includes('tercer')) {
+                    cssClass = 'pin-l3'; // Rojo
+                    iconClass = 'ph-buildings'; // Edificio Grande
+                    headerColor = 'bg-[#8B0000]';
+                }
+
+                // CREAR EL PIN PERSONALIZADO
                 const icon = L.divIcon({
-                    className: '',
-                    html: `<div class="health-icon-container ${cssClass}" style="width:${size}px; height:${size}px;">${iconSvg}</div>`,
-                    iconSize: [size, size],
-                    iconAnchor: [size/2, size/2]
+                    className: 'custom-div-icon', // Clase base vacía para que Leaflet no ponga cuadro blanco
+                    html: `
+                        <div class="pin-marker ${cssClass}">
+                            <i class="ph-fill ${iconClass} pin-icon"></i>
+                        </div>
+                    `,
+                    iconSize: [36, 36],
+                    iconAnchor: [18, 36], // Punta del pin abajo al centro
+                    popupAnchor: [0, -38] // Popup sale encima del pin
                 });
 
-                const marker = L.marker([d._lat, d._lng], { icon: icon });
-
-                const popup = `
+                // POPUP "GLASS"
+                const popupContent = `
                     <div class="font-sans">
-                        <div class="bg-brand-900 p-3 relative">
-                            <span class="text-[9px] text-white/70 uppercase font-bold">COD: ${d.COD_SNIS||'--'}</span>
-                            <h3 class="font-bold text-white text-sm pr-4 leading-tight">${d.NOMBRE}</h3>
+                        <div class="${headerColor} h-2 w-full"></div>
+                        <div class="p-5 relative">
+                            <span class="absolute top-4 right-4 text-[10px] font-mono text-gray-400 border px-1 rounded">COD: ${item.COD_SNIS}</span>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">${item.NIVEL}</p>
+                            <h3 class="text-base font-bold text-gray-800 leading-tight mb-3 pr-8">${item.NOMBRE}</h3>
+                            
+                            <div class="space-y-1.5 text-xs text-gray-500">
+                                <div class="flex items-center gap-2"><i class="ph-fill ph-map-pin text-red-800"></i> ${item.MUNICIPIO}</div>
+                                <div class="flex items-center gap-2"><i class="ph-fill ph-users-three text-red-800"></i> Red: ${item.RED}</div>
+                                <div class="flex items-center gap-2"><i class="ph-fill ph-tag text-red-800"></i> ${item.SUBSECTOR}</div>
+                            </div>
                         </div>
-                        <div class="p-3 bg-white text-xs text-slate-500 space-y-1">
-                            <div class="flex justify-between"><span>Muni:</span> <b class="text-slate-700">${d.MUNICIPIO}</b></div>
-                            <div class="flex justify-between"><span>Red:</span> <b class="text-slate-700">${d.RED}</b></div>
-                            <div class="mt-2 text-center bg-slate-100 rounded py-1 text-brand-900 font-bold">${d.NIVEL}</div>
-                        </div>
-                    </div>`;
+                    </div>
+                `;
 
-                marker.bindPopup(popup);
-                marker.addTo(layerGroup);
-                markersRef[d._id] = marker;
-                marker.on('click', () => highlightMarker(d._id));
+                const m = L.marker([item.Latitud, item.Longitud], { icon: icon })
+                    .bindPopup(popupContent, { className: 'modern-popup' });
+                
+                m.on('click', () => map.flyTo([item.Latitud, item.Longitud], 16));
+
+                layerGroup.addLayer(m);
+                markers[item.COD_SNIS] = m;
+                bounds.extend([item.Latitud, item.Longitud]);
             });
 
-            if(filteredData.length > 0) map.fitBounds(bounds, { padding: [50, 50] });
+            if(filteredData.length) map.fitBounds(bounds, { padding: [50,50], maxZoom: 15 });
         }
 
-        function highlightMarker(id) {
-            if(window.innerWidth < 1024) document.getElementById('map').scrollIntoView({ behavior: 'smooth' });
-            if(selectedMarkerId !== null && markersRef[selectedMarkerId]) {
-                const el = markersRef[selectedMarkerId].getElement()?.querySelector('.health-icon-container');
-                if(el) el.classList.remove('marker-selected');
-            }
-            const marker = markersRef[id];
-            if(marker) {
-                const el = marker.getElement()?.querySelector('.health-icon-container');
-                if(el) { el.classList.add('marker-selected'); selectedMarkerId = id; }
-                map.flyTo(marker.getLatLng(), 16, { duration: 1.5 });
-                marker.openPopup();
-            }
-        }
-
-        // --- GRÁFICOS CON LEYENDAS EXPLICATIVAS Y DESCARGA ---
-        function renderCharts() {
-            document.getElementById('kpi-total').innerText = filteredData.length;
-            document.getElementById('kpi-muni').innerText = new Set(filteredData.map(d=>d.MUNICIPIO)).size;
-            document.getElementById('list-count').innerText = filteredData.length;
-            
-            const countBy = (k) => { const c={}; filteredData.forEach(d=>c[d[k]||'Sin dato']=(c[d[k]||'Sin dato']||0)+1); return Object.entries(c).sort((a,b)=>b[1]-a[1]); };
-
-            // Data Preparation
-            const dataSub = countBy('SUBSECTOR');
-            
-            // Mapeo estricto de colores para Niveles
-            const nivelCounts = countBy('NIVEL');
-            const nivelData = nivelCounts.map(([name, y]) => {
-                let color = '#64748b'; // Default Grey
-                if(name.includes('2')) color = '#f97316'; // Orange
-                if(name.includes('3')) color = '#b91c1c'; // Red
-                return { name, y, color };
-            });
-
-            // 1. CHART NIVELES (DONUT CON LEYENDA DETALLADA)
-            Highcharts.chart('chart-nivel', {
-                chart: { type: 'pie', backgroundColor: 'transparent' },
-                title: { text: 'Distribución por Nivel', align: 'left' },
-                plotOptions: {
-                    pie: {
-                        innerSize: '50%', 
-                        dataLabels: { enabled: false },
-                        showInLegend: true
-                    }
-                },
-                // LEYENDA DINÁMICA
-                legend: {
-                    layout: 'vertical', align: 'right', verticalAlign: 'middle',
-                    itemMarginTop: 5,
-                    itemStyle: { fontSize: '11px', color: '#334155', fontWeight: '500' },
-                    labelFormat: '{name}: <b>{y}</b> ({percentage:.1f}%)' // Muestra Nombre: Cantidad (Porcentaje)
-                },
-                series: [{ name: 'Centros', data: nivelData }]
-            });
-
-            // 2. CHART SUBSECTORES (SEMI CIRCLE CON LEYENDA CLARA)
-            Highcharts.chart('chart-subsector', {
-                chart: { type: 'pie', backgroundColor: 'transparent', marginBottom: 30 },
-                title: { text: 'Subsectores', align: 'center', verticalAlign: 'middle', y: 15 },
-                plotOptions: {
-                    pie: {
-                        startAngle: -90, endAngle: 90, center: ['50%', '75%'], size: '110%',
-                        innerSize: '60%', dataLabels: { enabled: false }, showInLegend: true
-                    }
-                },
-                legend: {
-                    enabled: true,
-                    labelFormat: '{name}: <b>{y}</b>' // Muestra Nombre: Cantidad
-                },
-                series: [{ 
-                    name: 'Total', 
-                    data: dataSub.map(d => ({ name: d[0], y: d[1] })),
-                    colors: ['#0ea5e9', '#6366f1', '#ec4899', '#8b5cf6', '#14b8a6'] 
-                }]
-            });
-        }
-
+        // --- LISTA Y GRÁFICOS (SIN CAMBIOS DE LÓGICA) ---
         function renderList() {
-            const list = document.getElementById('list-container');
-            list.innerHTML = '';
-            filteredData.slice(0, 50).forEach(d => {
+            const div = document.getElementById('resultList'); div.innerHTML = '';
+            const maxPage = Math.ceil(filteredData.length / perPage) || 1;
+            if(page > maxPage) page = maxPage; if(page < 1) page = 1;
+
+            filteredData.slice((page-1)*perPage, page*perPage).forEach(d => {
+                let border = 'border-l-emerald-500';
+                let n = String(d.NIVEL).toLowerCase();
+                if(n.includes('2')) border = 'border-l-amber-500';
+                if(n.includes('3')) border = 'border-l-red-800';
+
                 const el = document.createElement('div');
-                el.className = "p-2 hover:bg-slate-50 cursor-pointer border-b border-slate-50 flex items-center gap-2 text-xs text-slate-700";
-                let iconClass = 'text-slate-500';
-                if(d.NIVEL && d.NIVEL.includes('2')) iconClass = 'text-orange-600';
-                if(d.NIVEL && d.NIVEL.includes('3')) iconClass = 'text-red-700';
-                el.innerHTML = `<i data-lucide="circle-dot" class="w-3 h-3 ${iconClass} shrink-0"></i> <span class="truncate">${d.NOMBRE}</span>`;
-                el.onclick = () => highlightMarker(d._id);
-                list.appendChild(el);
+                el.className = `p-3 bg-white rounded-xl border border-gray-100 border-l-[4px] ${border} shadow-sm hover:shadow-md cursor-pointer transition group`;
+                el.innerHTML = `
+                    <h4 class="font-bold text-xs text-gray-700 group-hover:text-red-800 truncate">${d.NOMBRE}</h4>
+                    <div class="flex justify-between mt-1"><span class="text-[10px] text-gray-400">${d.MUNICIPIO}</span><i class="ph-bold ph-caret-right text-gray-300"></i></div>
+                `;
+                el.onclick = () => { if(markers[d.COD_SNIS]) { map.flyTo([d.Latitud, d.Longitud], 17); markers[d.COD_SNIS].openPopup(); } };
+                div.appendChild(el);
             });
-            lucide.createIcons();
+            document.getElementById('pgInfo').innerText = `${page}/${maxPage}`;
+        }
+        function pg(d) { page+=d; renderList(); }
+
+        let ch1, ch2, ch3;
+        function initCharts() {
+            Highcharts.theme = { colors: ['#10b981', '#f59e0b', '#991b1b', '#3b82f6'], chart: { style: { fontFamily: 'Inter' } } };
+            Highcharts.setOptions(Highcharts.theme);
+            ch1 = Highcharts.chart('chart1', { chart: { type: 'variablepie' }, title: { text: 'Nivel Atención' }, series: [{ minPointSize: 10, innerSize: '50%', zMin: 0, name: 'Centros', data: [] }] });
+            ch2 = Highcharts.chart('chart2', { chart: { type: 'bar' }, title: { text: 'Subsector' }, xAxis: { categories: [] }, yAxis: { title: null }, legend: { enabled: false }, series: [{ name: 'Total', data: [], colorByPoint: true }] });
+            ch3 = Highcharts.chart('chart3', { chart: { type: 'column' }, title: { text: 'Por Red de Salud' }, xAxis: { type: 'category' }, yAxis: { title: null }, legend: { enabled: false }, series: [{ name: 'Total', data: [], color: '#8B0000' }] });
+        }
+        function updateCharts() {
+            const count = (k) => { const c={}; filteredData.forEach(i=>{let v=i[k]||'S/D';c[v]=(c[v]||0)+1;}); return Object.entries(c).map(([name,y])=>({name,y})).sort((a,b)=>b.y-a.y); };
+            const d1 = count('NIVEL'); d1.forEach(p => { let n=p.name.toLowerCase(); if(n.includes('1')) p.color='#10b981'; if(n.includes('2')) p.color='#f59e0b'; if(n.includes('3')) p.color='#991b1b'; });
+            ch1.series[0].setData(d1);
+            const d2 = count('SUBSECTOR'); ch2.xAxis[0].setCategories(d2.map(x=>x.name)); ch2.series[0].setData(d2.map(x=>x.y));
+            ch3.series[0].setData(count('RED'));
         }
 
-        document.getElementById('context-search').addEventListener('input', (e) => {
-            const val = e.target.value.toLowerCase();
-            const res = document.getElementById('search-results');
-            res.innerHTML = '';
-            if(val.length < 2) { res.classList.add('hidden'); return; }
-            const matches = filteredData.filter(d => d.NOMBRE && d.NOMBRE.toLowerCase().includes(val)).slice(0, 10);
-            if(matches.length > 0) {
-                res.classList.remove('hidden');
-                matches.forEach(d => {
-                    const el = document.createElement('div');
-                    el.className = "p-2.5 border-b border-gray-100 hover:bg-slate-50 cursor-pointer text-xs font-medium text-slate-700";
-                    el.innerText = d.NOMBRE;
-                    el.onclick = () => { highlightMarker(d._id); res.classList.add('hidden'); document.getElementById('context-search').value = ''; };
-                    res.appendChild(el);
-                });
-            } else { res.classList.remove('hidden'); res.innerHTML = `<div class="p-3 text-xs text-gray-400 italic">No encontrado.</div>`; }
-        });
-
-        function populateSelect() {
-            const sel = document.getElementById('main-filter');
-            [...new Set(globalData.map(d=>d.RED))].sort().forEach(r => { if(r) sel.innerHTML += `<option value="${r}">${r}</option>`; });
-            sel.addEventListener('change', updateDashboard);
+        function setView(v) {
+            document.querySelectorAll('.view-panel').forEach(e=>e.classList.remove('active')); document.getElementById('view-'+v).classList.add('active');
+            const b1=document.getElementById('btn-map'), b2=document.getElementById('btn-stats');
+            const activeClass = "flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all bg-white text-[#8B0000] shadow-md transform hover:scale-105";
+            const inactiveClass = "flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all text-red-100 hover:bg-white/10";
+            if(v==='map'){ b1.className=activeClass; b2.className=inactiveClass; setTimeout(()=>map.invalidateSize(),100); }
+            else{ b2.className=activeClass; b1.className=inactiveClass; setTimeout(()=>{ch1.reflow();ch2.reflow();ch3.reflow()},100); }
         }
-
-        initMap();
-        loadData();
     </script>
 </body>
 </html>
