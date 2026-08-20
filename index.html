@@ -3,175 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estructura - GeoSalud</title>
+    <title>Visor Interactivo - Establecimientos de Salud</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     
+    <!-- MarkerCluster CSS (Para la interactividad del mapa) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/modules/variable-pie.js"></script>
-    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
 
-        /* --- 1. ESTILOS DE MARCADORES (PINS) MEJORADOS --- */
+        /* --- ESTILOS DE MARCADORES (PINS) --- */
         .pin-marker {
             width: 36px; height: 36px;
             border-radius: 50% 50% 50% 0;
             background: #fff;
             position: absolute;
             transform: rotate(-45deg);
-            box-shadow: -3px 5px 5px rgba(0,0,0,0.3);
+            box-shadow: -3px 5px 8px rgba(0,0,0,0.3);
             display: flex; align-items: center; justify-content: center;
             border: 2px solid white;
-            transition: all 0.2s ease-out;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Rebote */
         }
         .pin-marker::after {
             content: ''; width: 20px; height: 20px;
-            border-radius: 50%; background: rgba(255,255,255,0.2);
+            border-radius: 50%; background: rgba(255,255,255,0.25);
             position: absolute;
         }
-        /* Icono dentro del Pin (se rota 45deg para corregir la rotación del padre) */
         .pin-icon {
             transform: rotate(45deg);
-            color: white;
-            font-size: 18px;
-            z-index: 2;
+            color: white; font-size: 18px; z-index: 2;
+            transition: transform 0.3s ease;
         }
-        /* Colores por Nivel */
-        .pin-l1 { background: linear-gradient(135deg, #10b981 0%, #059669 100%); } /* Verde */
-        .pin-l2 { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); } /* Naranja */
-        .pin-l3 { background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%); } /* Rojo Sangre */
 
-        /* Animación Hover */
+        /* Colores por Nivel (Ajustados para armonizar con el tema amarillo) */
+        .pin-l1 { background: linear-gradient(135deg, #10b981 0%, #047857 100%); } /* Verde Esmeralda */
+        .pin-l2 { background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%); } /* Naranja/Ámbar */
+        .pin-l3 { background: linear-gradient(135deg, #374151 0%, #111827 100%); } /* Gris Oscuro/Negro */
+
         .custom-div-icon:hover .pin-marker {
-            transform: rotate(-45deg) scale(1.2) translateY(-10px);
+            transform: rotate(-45deg) scale(1.2) translateY(-8px);
             z-index: 999;
+            box-shadow: -5px 8px 15px rgba(0,0,0,0.4);
         }
+        .custom-div-icon:hover .pin-icon { transform: rotate(45deg) scale(1.1); }
 
-        /* --- 2. POPUP MODERNO (Glassmorphism) --- */
+        /* --- CLUSTERS PERSONALIZADOS (Tonos Amarillos) --- */
+        .marker-cluster-small { background-color: rgba(250, 204, 21, 0.5); }
+        .marker-cluster-small div { background-color: rgba(250, 204, 21, 0.9); color: #111827; font-weight: bold; }
+        .marker-cluster-medium { background-color: rgba(234, 179, 8, 0.5); }
+        .marker-cluster-medium div { background-color: rgba(234, 179, 8, 0.9); color: #111827; font-weight: bold; }
+        .marker-cluster-large { background-color: rgba(202, 138, 4, 0.5); }
+        .marker-cluster-large div { background-color: rgba(202, 138, 4, 0.9); color: white; font-weight: bold; }
+
+        /* --- POPUP MODERNO --- */
         .modern-popup .leaflet-popup-content-wrapper {
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px);
             border-radius: 16px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            padding: 0; border: 1px solid white;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+            padding: 0; border: 1px solid rgba(250, 204, 21, 0.3);
+            overflow: hidden;
         }
-        .modern-popup .leaflet-popup-content { margin: 0; width: 300px !important; }
+        .modern-popup .leaflet-popup-content { margin: 0; width: 310px !important; }
         .modern-popup .leaflet-popup-tip { background: white; }
         .modern-popup a.leaflet-popup-close-button {
-            color: white !important; top: 8px; right: 8px;
-            background: rgba(0,0,0,0.2); border-radius: 50%;
-            width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+            color: white !important; top: 10px; right: 10px;
+            background: rgba(0,0,0,0.3); border-radius: 50%;
+            width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s;
         }
+        .modern-popup a.leaflet-popup-close-button:hover { background: rgba(0,0,0,0.6); }
 
         /* Utilidades */
-        .custom-scroll::-webkit-scrollbar { width: 5px; }
-        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .view-panel { display: none; height: calc(100vh - 70px); }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #facc15; border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #eab308; }
+        
+        .view-panel { display: none; height: calc(100vh - 76px); animation: fadeIn 0.4s ease-out; }
         .view-panel.active { display: grid; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden text-slate-800">
 
-    <nav class="bg-[#8B0000] text-white shadow-xl z-50 h-[70px] flex-none">
+    <!-- NAVBAR: Tema Amarillo/Oscuro -->
+    <nav class="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-gray-900 shadow-xl z-50 h-[76px] flex-none border-b border-yellow-300">
         <div class="container mx-auto px-6 h-full flex justify-between items-center">
             <div class="flex items-center gap-4">
-                <div class="bg-white/10 p-2 rounded-xl backdrop-blur border border-white/10">
+                <div class="bg-gray-900 text-yellow-400 p-2.5 rounded-xl shadow-inner transform transition hover:rotate-12">
                     <i class="ph-fill ph-hospital text-2xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-lg font-bold tracking-tight leading-none">SEDES LA PAZ / SUISD</h1>
-                    <p class="text-[10px] text-red-200 uppercase tracking-widest mt-0.5">Visor Establecimientos de Salud</p>
+                    <h1 class="text-xl font-extrabold tracking-tight leading-none text-gray-900 drop-shadow-sm">SEDES LA PAZ</h1>
+                    <p class="text-[11px] text-gray-800 font-bold uppercase tracking-widest mt-1">Visor Interactivo de Salud</p>
                 </div>
             </div>
-            <div class="flex bg-black/20 p-1 rounded-xl gap-1">
-                <button onclick="setView('map')" id="btn-map" class="flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all bg-white text-[#8B0000] shadow-md transform hover:scale-105">
+            <div class="flex bg-white/30 p-1.5 rounded-xl gap-2 backdrop-blur-sm border border-white/40">
+                <button onclick="setView('map')" id="btn-map" class="flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-bold transition-all bg-gray-900 text-yellow-400 shadow-lg transform hover:-translate-y-0.5">
                     <i class="ph-bold ph-map-pin text-lg"></i> Mapa
                 </button>
-                <button onclick="setView('stats')" id="btn-stats" class="flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all text-red-100 hover:bg-white/10">
-                    <i class="ph-bold ph-chart-bar text-lg"></i> Estadísticas
+                <button onclick="setView('stats')" id="btn-stats" class="flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-bold transition-all text-gray-800 hover:bg-white/50 hover:shadow">
+                    <i class="ph-bold ph-chart-bar text-lg"></i> Datos
                 </button>
             </div>
         </div>
     </nav>
 
+    <!-- VISTA MAPA -->
     <div id="view-map" class="view-panel active container mx-auto p-4 md:p-6 gap-6 grid-cols-1 lg:grid-cols-12 min-h-0">
         
+        <!-- Panel Izquierdo (Buscador y Resultados) -->
         <div class="lg:col-span-4 flex flex-col gap-4 h-full min-h-0">
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex-none">
-                <div class="relative group mb-4">
-                    <input type="text" id="inputSearch" placeholder="Buscar establecimiento..." class="w-full pl-10 pr-4 py-3 bg-gray-50 rounded-xl text-sm font-medium focus:ring-2 focus:ring-red-900 outline-none transition">
-                    <i class="ph-bold ph-magnifying-glass absolute left-3 top-3.5 text-gray-400"></i>
+            <div class="bg-white p-5 rounded-2xl shadow-md border border-gray-100 flex-none relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-16 h-16 bg-yellow-100 rounded-bl-full -z-0 opacity-50"></div>
+                <div class="relative group mb-4 z-10">
+                    <input type="text" id="inputSearch" placeholder="Buscar establecimiento o código..." class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 focus:bg-white outline-none transition-all shadow-inner">
+                    <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-3.5 text-gray-400 text-lg group-focus-within:text-yellow-500 transition-colors"></i>
                 </div>
-                <div class="flex gap-3">
-                    <select id="selRed" onchange="filterRed()" class="w-1/2 p-2 bg-gray-50 rounded-lg text-xs font-bold text-gray-600 outline-none"><option value="">Todas las Redes</option></select>
-                    <select id="selMuni" onchange="execFilter()" class="w-1/2 p-2 bg-gray-50 rounded-lg text-xs font-bold text-gray-600 outline-none" disabled><option value="">Todos</option></select>
+                <div class="flex gap-3 z-10 relative">
+                    <select id="selRed" onchange="filterRed()" class="w-1/2 p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-700 outline-none hover:border-yellow-300 focus:ring-2 focus:ring-yellow-400 cursor-pointer transition-colors"><option value="">Todas las Redes</option></select>
+                    <select id="selMuni" onchange="execFilter()" class="w-1/2 p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-700 outline-none hover:border-yellow-300 focus:ring-2 focus:ring-yellow-400 cursor-pointer transition-colors disabled:opacity-50" disabled><option value="">Municipios</option></select>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 flex-1 overflow-hidden flex flex-col">
-                <div class="p-3 bg-gray-50 border-b flex justify-between items-center text-[10px] text-gray-500 font-bold uppercase">
-                    <span>Resultados (<span id="counter">0</span>)</span>
-                    <div class="flex gap-2">
-                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> N1</span>
-                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> N2</span>
-                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-800"></span> N3</span>
+            <div class="bg-white rounded-2xl shadow-md border border-gray-100 flex-1 overflow-hidden flex flex-col">
+                <div class="p-4 bg-gray-900 border-b flex justify-between items-center text-xs text-yellow-400 font-bold uppercase tracking-wider">
+                    <span class="flex items-center gap-2"><i class="ph-bold ph-list-bullets"></i> Resultados (<span id="counter" class="text-white">0</span>)</span>
+                    <div class="flex gap-3">
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_5px_#10b981]"></span> N1</span>
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_5px_#f59e0b]"></span> N2</span>
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-gray-700 shadow-[0_0_5px_#374151]"></span> N3</span>
                     </div>
                 </div>
-                <div id="resultList" class="flex-1 overflow-y-auto p-3 space-y-2 custom-scroll"></div>
-                <div class="p-3 border-t flex justify-center gap-4 bg-white">
-                    <button onclick="pg(-1)" class="p-1 hover:bg-gray-100 rounded"><i class="ph-bold ph-caret-left"></i></button>
-                    <span id="pgInfo" class="text-xs font-bold pt-1">1</span>
-                    <button onclick="pg(1)" class="p-1 hover:bg-gray-100 rounded"><i class="ph-bold ph-caret-right"></i></button>
+                <div id="resultList" class="flex-1 overflow-y-auto p-3 space-y-3 custom-scroll bg-gray-50/50"></div>
+                <div class="p-3 border-t flex justify-center items-center gap-6 bg-white shadow-[0_-5px_15px_rgba(0,0,0,0.02)]">
+                    <button onclick="pg(-1)" class="p-2 hover:bg-yellow-100 text-gray-600 hover:text-yellow-600 rounded-lg transition-colors"><i class="ph-bold ph-caret-left text-lg"></i></button>
+                    <span id="pgInfo" class="text-sm font-extrabold text-gray-700 bg-gray-100 px-4 py-1 rounded-full">1 / 1</span>
+                    <button onclick="pg(1)" class="p-2 hover:bg-yellow-100 text-gray-600 hover:text-yellow-600 rounded-lg transition-colors"><i class="ph-bold ph-caret-right text-lg"></i></button>
                 </div>
             </div>
         </div>
 
-        <div class="lg:col-span-8 h-full rounded-2xl overflow-hidden shadow-lg border border-gray-200 relative group">
+        <!-- Contenedor del Mapa -->
+        <div class="lg:col-span-8 h-full rounded-2xl overflow-hidden shadow-xl border border-gray-200 relative group">
             <div id="map" class="h-full w-full z-0 bg-slate-100"></div>
             
-            <div class="absolute top-4 right-4 z-[400] bg-white rounded-xl shadow-lg border border-gray-100 p-1 flex flex-col gap-1">
-                <button onclick="setLayer('osm')" class="flex items-center gap-2 p-2 hover:bg-blue-50 rounded-lg text-gray-600 text-xs font-bold transition w-full text-left">
-                    <i class="ph-fill ph-road-horizon text-blue-600 text-lg"></i> Calles (OSM)
+            <!-- Selector de Capas Moderno -->
+            <div class="absolute top-4 right-4 z-[400] bg-white/90 backdrop-blur-md rounded-xl shadow-lg border border-gray-200 p-1.5 flex flex-col gap-1 transition-all hover:bg-white">
+                <button onclick="setLayer('osm')" class="flex items-center gap-3 p-2.5 hover:bg-yellow-50 rounded-lg text-gray-700 text-xs font-bold transition-colors w-full text-left group">
+                    <i class="ph-fill ph-road-horizon text-yellow-500 text-xl group-hover:scale-110 transition-transform"></i> Calles
                 </button>
-                <button onclick="setLayer('clean')" class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg text-gray-600 text-xs font-bold transition w-full text-left">
-                    <i class="ph-fill ph-map-trifold text-gray-400 text-lg"></i> Limpio
+                <button onclick="setLayer('clean')" class="flex items-center gap-3 p-2.5 hover:bg-gray-100 rounded-lg text-gray-700 text-xs font-bold transition-colors w-full text-left group">
+                    <i class="ph-fill ph-map-trifold text-gray-400 text-xl group-hover:scale-110 transition-transform"></i> Limpio
                 </button>
-                <button onclick="setLayer('sat')" class="flex items-center gap-2 p-2 hover:bg-green-50 rounded-lg text-gray-600 text-xs font-bold transition w-full text-left">
-                    <i class="ph-fill ph-globe-hemisphere-west text-green-700 text-lg"></i> Satélite
+                <button onclick="setLayer('sat')" class="flex items-center gap-3 p-2.5 hover:bg-emerald-50 rounded-lg text-gray-700 text-xs font-bold transition-colors w-full text-left group">
+                    <i class="ph-fill ph-globe-hemisphere-west text-emerald-600 text-xl group-hover:scale-110 transition-transform"></i> Satélite
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- VISTA ESTADÍSTICAS -->
     <div id="view-stats" class="view-panel container mx-auto p-6 overflow-y-auto custom-scroll">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-10">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"><div id="chart1" class="w-full h-[300px]"></div></div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"><div id="chart2" class="w-full h-[300px]"></div></div>
-            <div class="bg-gradient-to-br from-[#8B0000] to-[#5a0000] p-6 rounded-2xl shadow-lg text-white flex flex-col justify-center items-center">
-                <i class="ph-duotone ph-buildings text-5xl mb-2 opacity-80"></i>
-                <span class="text-4xl font-bold" id="kpi-total">0</span>
-                <span class="text-sm uppercase tracking-widest opacity-70">Total Centros</span>
+            <div class="bg-white p-6 rounded-2xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow"><div id="chart1" class="w-full h-[300px]"></div></div>
+            <div class="bg-white p-6 rounded-2xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow"><div id="chart2" class="w-full h-[300px]"></div></div>
+            
+            <!-- KPI Destacado -->
+            <div class="bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl shadow-xl text-yellow-400 flex flex-col justify-center items-center relative overflow-hidden border border-yellow-500/20 transform transition hover:scale-[1.02]">
+                <div class="absolute -right-10 -bottom-10 opacity-10"><i class="ph-fill ph-buildings text-9xl"></i></div>
+                <i class="ph-duotone ph-buildings text-6xl mb-3 drop-shadow-md z-10"></i>
+                <span class="text-6xl font-extrabold z-10 drop-shadow-lg" id="kpi-total">0</span>
+                <span class="text-sm font-bold uppercase tracking-widest text-gray-300 mt-2 z-10">Total Centros</span>
             </div>
-            <div class="md:col-span-2 lg:col-span-3 bg-white p-6 rounded-2xl shadow-sm border border-gray-100"><div id="chart3" class="w-full h-[400px]"></div></div>
+            
+            <div class="md:col-span-2 lg:col-span-3 bg-white p-6 rounded-2xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow"><div id="chart3" class="w-full h-[400px]"></div></div>
         </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 
     <script>
         // === CONFIGURACIÓN ===
-        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR1DHcWzeJllMtxhIQlpaw6byDlbsji0L4w3SZaWTQDgdz2MdeJEGfB6peldYWgEeQUzgr0hP73zwwt/pub?output=csv'; // PEGAR ENLACE
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR1DHcWzeJllMtxhIQlpaw6byDlbsji0L4w3SZaWTQDgdz2MdeJEGfB6peldYWgEeQUzgr0hP73zwwt/pub?output=csv';
 
-        let rawData=[], filteredData=[], markers={}, map, layerGroup, page=1;
+        let rawData=[], filteredData=[], markers={}, map, markerClusterGroup, page=1;
         const perPage=10;
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -183,20 +213,24 @@
 
         // --- MAPA ---
         function initMap() {
-            map = L.map('map', { zoomControl: false }).setView([-16.5000, -68.1193], 12); // Zoom inicial más cercano
+            map = L.map('map', { zoomControl: false }).setView([-16.5000, -68.1193], 12);
             L.control.zoom({ position: 'bottomright' }).addTo(map);
-            setLayer('osm'); // POR DEFECTO: CALLES DETALLADAS
-            layerGroup = L.layerGroup().addTo(map);
+            setLayer('osm');
+            
+            // Inicializar MarkerCluster en lugar de un LayerGroup simple
+            markerClusterGroup = L.markerClusterGroup({
+                chunkedLoading: true,
+                maxClusterRadius: 40,
+                spiderfyOnMaxZoom: true
+            });
+            map.addLayer(markerClusterGroup);
         }
 
         function setLayer(type) {
             map.eachLayer(l => { if(l instanceof L.TileLayer) map.removeLayer(l); });
             let url = '';
-            // CAPA 1: Calles Detalladas (OpenStreetMap Standard)
             if(type === 'osm') url = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-            // CAPA 2: Limpio (CartoDB Light)
             else if(type === 'clean') url = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
-            // CAPA 3: Satélite (Esri)
             else if(type === 'sat') url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
             
             L.tileLayer(url, { attribution: 'Datos SNIS' }).addTo(map);
@@ -219,7 +253,8 @@
         function filterRed() {
             const red = document.getElementById('selRed').value;
             const m = document.getElementById('selMuni');
-            m.innerHTML = '<option value="">Todos</option>'; m.disabled = !red;
+            m.innerHTML = '<option value="">Todos los Municipios</option>'; 
+            m.disabled = !red;
             if(red) [...new Set(rawData.filter(d=>d.RED===red).map(d=>d.MUNICIPIO))].sort().forEach(mu=>m.add(new Option(mu,mu)));
             page=1; execFilter();
         }
@@ -235,59 +270,59 @@
             });
 
             document.getElementById('counter').innerText = filteredData.length;
-            document.getElementById('kpi-total').innerText = filteredData.length;
+            
+            // Animación del número total
+            const kpi = document.getElementById('kpi-total');
+            kpi.style.transform = 'scale(1.2)';
+            kpi.innerText = filteredData.length;
+            setTimeout(() => kpi.style.transform = 'scale(1)', 200);
+
             renderMap(); renderList(); updateCharts();
         }
 
-        // --- RENDER MAPA MEJORADO ---
+        // --- RENDER MAPA CON CLUSTERS ---
         function renderMap() {
-            layerGroup.clearLayers();
+            markerClusterGroup.clearLayers();
             markers = {};
             const bounds = L.latLngBounds();
+            const markerList = [];
 
             filteredData.forEach(item => {
-                // LOGICA DE COLORES E ICONOS POR NIVEL
                 let lvl = String(item.NIVEL).toLowerCase();
-                let cssClass = 'pin-l1'; // Default Verde
-                let iconClass = 'ph-first-aid'; // Default Cruz
+                let cssClass = 'pin-l1'; 
+                let iconClass = 'ph-first-aid'; 
                 let headerColor = 'bg-emerald-500';
 
                 if(lvl.includes('2') || lvl.includes('segundo')) {
-                    cssClass = 'pin-l2'; // Naranja
-                    iconClass = 'ph-hospital'; // Hospital
+                    cssClass = 'pin-l2'; 
+                    iconClass = 'ph-hospital'; 
                     headerColor = 'bg-amber-500';
                 } else if (lvl.includes('3') || lvl.includes('tercer')) {
-                    cssClass = 'pin-l3'; // Rojo
-                    iconClass = 'ph-buildings'; // Edificio Grande
-                    headerColor = 'bg-[#8B0000]';
+                    cssClass = 'pin-l3'; 
+                    iconClass = 'ph-buildings'; 
+                    headerColor = 'bg-gray-800';
                 }
 
-                // CREAR EL PIN PERSONALIZADO
                 const icon = L.divIcon({
-                    className: 'custom-div-icon', // Clase base vacía para que Leaflet no ponga cuadro blanco
-                    html: `
-                        <div class="pin-marker ${cssClass}">
-                            <i class="ph-fill ${iconClass} pin-icon"></i>
-                        </div>
-                    `,
+                    className: 'custom-div-icon',
+                    html: `<div class="pin-marker ${cssClass}"><i class="ph-fill ${iconClass} pin-icon"></i></div>`,
                     iconSize: [36, 36],
-                    iconAnchor: [18, 36], // Punta del pin abajo al centro
-                    popupAnchor: [0, -38] // Popup sale encima del pin
+                    iconAnchor: [18, 36],
+                    popupAnchor: [0, -38]
                 });
 
-                // POPUP "GLASS"
                 const popupContent = `
                     <div class="font-sans">
-                        <div class="${headerColor} h-2 w-full"></div>
+                        <div class="${headerColor} h-2.5 w-full"></div>
                         <div class="p-5 relative">
-                            <span class="absolute top-4 right-4 text-[10px] font-mono text-gray-400 border px-1 rounded">COD: ${item.COD_SNIS}</span>
+                            <span class="absolute top-4 right-4 text-[10px] font-mono text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">COD: ${item.COD_SNIS}</span>
                             <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">${item.NIVEL}</p>
-                            <h3 class="text-base font-bold text-gray-800 leading-tight mb-3 pr-8">${item.NOMBRE}</h3>
+                            <h3 class="text-base font-extrabold text-gray-800 leading-tight mb-4 pr-12">${item.NOMBRE}</h3>
                             
-                            <div class="space-y-1.5 text-xs text-gray-500">
-                                <div class="flex items-center gap-2"><i class="ph-fill ph-map-pin text-red-800"></i> ${item.MUNICIPIO}</div>
-                                <div class="flex items-center gap-2"><i class="ph-fill ph-users-three text-red-800"></i> Red: ${item.RED}</div>
-                                <div class="flex items-center gap-2"><i class="ph-fill ph-tag text-red-800"></i> ${item.SUBSECTOR}</div>
+                            <div class="space-y-2 text-xs text-gray-600 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                                <div class="flex items-center gap-2"><div class="p-1 bg-yellow-100 text-yellow-600 rounded"><i class="ph-bold ph-map-pin"></i></div> <span class="font-semibold">${item.MUNICIPIO}</span></div>
+                                <div class="flex items-center gap-2"><div class="p-1 bg-yellow-100 text-yellow-600 rounded"><i class="ph-bold ph-users-three"></i></div> Red: ${item.RED}</div>
+                                <div class="flex items-center gap-2"><div class="p-1 bg-yellow-100 text-yellow-600 rounded"><i class="ph-bold ph-tag"></i></div> ${item.SUBSECTOR}</div>
                             </div>
                         </div>
                     </div>
@@ -296,17 +331,20 @@
                 const m = L.marker([item.Latitud, item.Longitud], { icon: icon })
                     .bindPopup(popupContent, { className: 'modern-popup' });
                 
-                m.on('click', () => map.flyTo([item.Latitud, item.Longitud], 16));
+                m.on('click', () => {
+                    map.flyTo([item.Latitud, item.Longitud], 17, { duration: 1.5, easeLinearity: 0.25 });
+                });
 
-                layerGroup.addLayer(m);
+                markerList.push(m);
                 markers[item.COD_SNIS] = m;
                 bounds.extend([item.Latitud, item.Longitud]);
             });
 
+            markerClusterGroup.addLayers(markerList);
             if(filteredData.length) map.fitBounds(bounds, { padding: [50,50], maxZoom: 15 });
         }
 
-        // --- LISTA Y GRÁFICOS (SIN CAMBIOS DE LÓGICA) ---
+        // --- RENDER LISTA INTERACTIVA ---
         function renderList() {
             const div = document.getElementById('resultList'); div.innerHTML = '';
             const maxPage = Math.ceil(filteredData.length / perPage) || 1;
@@ -314,46 +352,86 @@
 
             filteredData.slice((page-1)*perPage, page*perPage).forEach(d => {
                 let border = 'border-l-emerald-500';
+                let bgHover = 'hover:bg-emerald-50';
                 let n = String(d.NIVEL).toLowerCase();
-                if(n.includes('2')) border = 'border-l-amber-500';
-                if(n.includes('3')) border = 'border-l-red-800';
+                
+                if(n.includes('2')) { border = 'border-l-amber-500'; bgHover = 'hover:bg-amber-50'; }
+                if(n.includes('3')) { border = 'border-l-gray-800'; bgHover = 'hover:bg-gray-100'; }
 
                 const el = document.createElement('div');
-                el.className = `p-3 bg-white rounded-xl border border-gray-100 border-l-[4px] ${border} shadow-sm hover:shadow-md cursor-pointer transition group`;
+                el.className = `p-3.5 bg-white rounded-xl border border-gray-100 border-l-[5px] ${border} shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 transform hover:-translate-y-1 group ${bgHover}`;
                 el.innerHTML = `
-                    <h4 class="font-bold text-xs text-gray-700 group-hover:text-red-800 truncate">${d.NOMBRE}</h4>
-                    <div class="flex justify-between mt-1"><span class="text-[10px] text-gray-400">${d.MUNICIPIO}</span><i class="ph-bold ph-caret-right text-gray-300"></i></div>
+                    <h4 class="font-bold text-xs text-gray-800 group-hover:text-yellow-600 transition-colors line-clamp-1">${d.NOMBRE}</h4>
+                    <div class="flex justify-between items-center mt-2">
+                        <span class="text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">${d.MUNICIPIO}</span>
+                        <div class="bg-white p-1 rounded-full shadow-sm border border-gray-100 group-hover:bg-yellow-400 group-hover:text-white transition-colors">
+                            <i class="ph-bold ph-arrow-right text-gray-400 group-hover:text-white text-[10px]"></i>
+                        </div>
+                    </div>
                 `;
-                el.onclick = () => { if(markers[d.COD_SNIS]) { map.flyTo([d.Latitud, d.Longitud], 17); markers[d.COD_SNIS].openPopup(); } };
+                el.onclick = () => {
+                    if(markers[d.COD_SNIS]) {
+                        markerClusterGroup.zoomToShowLayer(markers[d.COD_SNIS], () => {
+                            map.flyTo([d.Latitud, d.Longitud], 18, { duration: 1 });
+                            setTimeout(() => markers[d.COD_SNIS].openPopup(), 1000);
+                        });
+                    }
+                };
                 div.appendChild(el);
             });
-            document.getElementById('pgInfo').innerText = `${page}/${maxPage}`;
+            document.getElementById('pgInfo').innerText = `${page} / ${maxPage}`;
         }
         function pg(d) { page+=d; renderList(); }
 
+        // --- GRÁFICOS (Tema Amarillo) ---
         let ch1, ch2, ch3;
         function initCharts() {
-            Highcharts.theme = { colors: ['#10b981', '#f59e0b', '#991b1b', '#3b82f6'], chart: { style: { fontFamily: 'Inter' } } };
+            Highcharts.theme = { 
+                colors: ['#10b981', '#f59e0b', '#374151', '#facc15', '#60a5fa'], 
+                chart: { style: { fontFamily: 'Inter' }, backgroundColor: 'transparent' },
+                title: { style: { color: '#1f2937', fontWeight: 'bold' } }
+            };
             Highcharts.setOptions(Highcharts.theme);
-            ch1 = Highcharts.chart('chart1', { chart: { type: 'variablepie' }, title: { text: 'Nivel Atención' }, series: [{ minPointSize: 10, innerSize: '50%', zMin: 0, name: 'Centros', data: [] }] });
-            ch2 = Highcharts.chart('chart2', { chart: { type: 'bar' }, title: { text: 'Subsector' }, xAxis: { categories: [] }, yAxis: { title: null }, legend: { enabled: false }, series: [{ name: 'Total', data: [], colorByPoint: true }] });
-            ch3 = Highcharts.chart('chart3', { chart: { type: 'column' }, title: { text: 'Por Red de Salud' }, xAxis: { type: 'category' }, yAxis: { title: null }, legend: { enabled: false }, series: [{ name: 'Total', data: [], color: '#8B0000' }] });
+            
+            ch1 = Highcharts.chart('chart1', { chart: { type: 'variablepie' }, title: { text: 'Por Nivel de Atención' }, tooltip: { headerFormat: '', pointFormat: '<b>{point.name}</b>: {point.y} centros' }, series: [{ minPointSize: 10, innerSize: '60%', zMin: 0, name: 'Centros', data: [] }] });
+            ch2 = Highcharts.chart('chart2', { chart: { type: 'bar' }, title: { text: 'Distribución por Subsector' }, xAxis: { categories: [] }, yAxis: { title: null }, legend: { enabled: false }, series: [{ name: 'Total', data: [], colorByPoint: true }] });
+            ch3 = Highcharts.chart('chart3', { chart: { type: 'column' }, title: { text: 'Establecimientos por Red de Salud' }, xAxis: { type: 'category' }, yAxis: { title: null }, legend: { enabled: false }, series: [{ name: 'Total', data: [], color: '#facc15', borderRadius: 4 }] });
         }
         function updateCharts() {
             const count = (k) => { const c={}; filteredData.forEach(i=>{let v=i[k]||'S/D';c[v]=(c[v]||0)+1;}); return Object.entries(c).map(([name,y])=>({name,y})).sort((a,b)=>b.y-a.y); };
-            const d1 = count('NIVEL'); d1.forEach(p => { let n=p.name.toLowerCase(); if(n.includes('1')) p.color='#10b981'; if(n.includes('2')) p.color='#f59e0b'; if(n.includes('3')) p.color='#991b1b'; });
+            
+            const d1 = count('NIVEL'); 
+            d1.forEach(p => { 
+                let n=p.name.toLowerCase(); 
+                if(n.includes('1')) p.color='#10b981'; 
+                if(n.includes('2')) p.color='#f59e0b'; 
+                if(n.includes('3')) p.color='#374151'; 
+            });
             ch1.series[0].setData(d1);
-            const d2 = count('SUBSECTOR'); ch2.xAxis[0].setCategories(d2.map(x=>x.name)); ch2.series[0].setData(d2.map(x=>x.y));
+            
+            const d2 = count('SUBSECTOR'); 
+            ch2.xAxis[0].setCategories(d2.map(x=>x.name)); 
+            ch2.series[0].setData(d2.map(x=>x.y));
+            
             ch3.series[0].setData(count('RED'));
         }
 
+        // --- NAVEGACIÓN ---
         function setView(v) {
-            document.querySelectorAll('.view-panel').forEach(e=>e.classList.remove('active')); document.getElementById('view-'+v).classList.add('active');
+            document.querySelectorAll('.view-panel').forEach(e=>e.classList.remove('active')); 
+            document.getElementById('view-'+v).classList.add('active');
+            
             const b1=document.getElementById('btn-map'), b2=document.getElementById('btn-stats');
-            const activeClass = "flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all bg-white text-[#8B0000] shadow-md transform hover:scale-105";
-            const inactiveClass = "flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all text-red-100 hover:bg-white/10";
-            if(v==='map'){ b1.className=activeClass; b2.className=inactiveClass; setTimeout(()=>map.invalidateSize(),100); }
-            else{ b2.className=activeClass; b1.className=inactiveClass; setTimeout(()=>{ch1.reflow();ch2.reflow();ch3.reflow()},100); }
+            const activeClass = "flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-bold transition-all bg-gray-900 text-yellow-400 shadow-lg transform hover:-translate-y-0.5";
+            const inactiveClass = "flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-bold transition-all text-gray-800 hover:bg-white/50 hover:shadow";
+            
+            if(v==='map'){ 
+                b1.className=activeClass; b2.className=inactiveClass; 
+                setTimeout(()=>map.invalidateSize(),100); 
+            } else { 
+                b2.className=activeClass; b1.className=inactiveClass; 
+                setTimeout(()=>{ch1.reflow();ch2.reflow();ch3.reflow()},100); 
+            }
         }
     </script>
 </body>
