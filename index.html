@@ -31,6 +31,9 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
     
+    <!-- Leaflet Routing Machine CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/modules/variable-pie.js"></script>
@@ -112,6 +115,9 @@
         /* Capa activa botón */
         .layer-btn.active { background-color: #facc15 !important; color: #0f172a !important; font-weight: bold; }
         .dark .layer-btn.active { background-color: #facc15 !important; color: #0f172a !important; }
+        
+        /* Ocultar las instrucciones de la ruta flotantes de LRM */
+        .leaflet-routing-container { display: none !important; }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden bg-slate-50 dark:bg-darkbase text-slate-800 dark:text-slate-200 transition-colors duration-300">
@@ -181,6 +187,35 @@
                     </div>
                 </div>
 
+                <!-- --- INICIO: CALCULADORA DE RUTAS --- -->
+                <div class="px-5 py-4 bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700/50 flex-none transition-colors">
+                    <div class="flex items-center gap-2 mb-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                        <i class="ph-bold ph-path text-brand-500"></i>
+                        <span>Calcular Distancia</span>
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <select id="selRutaOrigen" class="w-1/2 p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 outline-none hover:border-brand-400 focus:ring-2 focus:ring-brand-400 cursor-pointer transition-all appearance-none"><option value="">Origen...</option></select>
+                        <select id="selRutaDestino" class="w-1/2 p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 outline-none hover:border-brand-400 focus:ring-2 focus:ring-brand-400 cursor-pointer transition-all appearance-none"><option value="">Destino...</option></select>
+                    </div>
+                    
+                    <button onclick="calcularRuta()" class="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 rounded-xl text-xs font-bold shadow-md hover:bg-brand-500 dark:hover:bg-brand-400 transition-colors">
+                        <i class="ph-bold ph-car-profile text-sm"></i> Trazar Ruta
+                    </button>
+
+                    <div id="route-result" class="hidden mt-3 p-3 bg-brand-500/10 dark:bg-brand-400/10 border border-brand-500/20 dark:border-brand-400/20 rounded-xl">
+                        <div class="flex justify-between items-center text-slate-700 dark:text-slate-200 text-xs">
+                            <span class="font-semibold"><i class="ph-bold ph-ruler"></i> Distancia:</span>
+                            <span id="res-dist" class="font-black">-- km</span>
+                        </div>
+                        <div class="flex justify-between items-center text-slate-700 dark:text-slate-200 text-xs mt-1">
+                            <span class="font-semibold"><i class="ph-bold ph-clock"></i> Tiempo est.:</span>
+                            <span id="res-time" class="font-black">-- min</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- --- FIN: CALCULADORA DE RUTAS --- -->
+
                 <div class="px-5 py-3 bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-200 dark:border-slate-700/50 flex justify-between items-center text-xs font-bold uppercase tracking-wider flex-none text-slate-500 dark:text-slate-400">
                     <span>Resultados</span>
                     <span id="counter" class="text-slate-900 dark:text-white bg-slate-200 dark:bg-slate-700 px-2.5 py-1 rounded-lg">0</span>
@@ -214,15 +249,18 @@
         </div>
     </div>
 
-    <!-- Scripts -->
+    <!-- Scripts de Librerías -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <!-- Script de Leaflet Routing Machine -->
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 
     <script>
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR1DHcWzeJllMtxhIQlpaw6byDlbsji0L4w3SZaWTQDgdz2MdeJEGfB6peldYWgEeQUzgr0hP73zwwt/pub?output=csv';
 
         let rawData=[], filteredData=[], markers={}, map, markerClusterGroup, page=1;
+        let routingControl = null; // Variable para gestionar la ruta
         const perPage=12; 
         let isSidebarOpen = false;
 
@@ -239,7 +277,7 @@
                 document.getElementById('theme-icon').className = "ph-fill ph-moon text-xl text-slate-600";
             }
             updateChartsTheme();
-            updateCleanLayer(); // Actualiza el mapa limpio según el tema
+            updateCleanLayer();
         }
 
         function toggleTheme() {
@@ -249,14 +287,13 @@
         }
 
         // --- MAPA ULTRA OPTIMIZADO ---
-        // preferCanvas: true es CRÍTICO para el rendimiento con muchos marcadores y paneos fluidos.
         const mapOptions = { zoomControl: false, preferCanvas: true, wheelDebounceTime: 150 };
         
         const layerCfg = { maxZoom: 22, maxNativeZoom: 18, keepBuffer: 4, updateWhenZooming: false, updateWhenIdle: true };
         
         const mapLayers = {
             osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { ...layerCfg, attribution: '© OSM' }),
-            sat: L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', { ...layerCfg, attribution: '© Google', maxNativeZoom: 20 }), // Google Satélite
+            sat: L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', { ...layerCfg, attribution: '© Google', maxNativeZoom: 20 }),
             clean_light: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', layerCfg),
             clean_dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', layerCfg)
         };
@@ -300,7 +337,6 @@
         }
 
         function setLayer(type, btnElement) {
-            // Actualizar UI de botones
             document.querySelectorAll('.layer-btn').forEach(btn => btn.classList.remove('active'));
             if(btnElement) btnElement.classList.add('active');
             
@@ -328,8 +364,21 @@
                 download: true, header: true, dynamicTyping: true, skipEmptyLines: true,
                 complete: (res) => {
                     rawData = res.data.filter(r => r.Latitud && r.Longitud && r.NOMBRE);
+                    
+                    // Cargar Redes
                     const redes = [...new Set(rawData.map(d=>d.RED))].sort();
                     redes.forEach(r => document.getElementById('selRed').add(new Option(r,r)));
+                    
+                    // Cargar Municipios en los selects de Rutas
+                    const municipios = [...new Set(rawData.map(d=>d.MUNICIPIO))].sort();
+                    const selOrigen = document.getElementById('selRutaOrigen');
+                    const selDestino = document.getElementById('selRutaDestino');
+                    
+                    municipios.forEach(m => {
+                        selOrigen.add(new Option(m, m));
+                        selDestino.add(new Option(m, m));
+                    });
+
                     execFilter();
                 }
             });
@@ -446,7 +495,78 @@
             });
             document.getElementById('pgInfo').innerText = `${page} / ${maxPage}`;
         }
+        
         function pg(d) { page+=d; renderList(); }
+
+        // --- FUNCIONES DE CÁLCULO DE RUTAS ---
+        function obtenerCentroMunicipio(nombreMunicipio) {
+            const establecimientos = rawData.filter(d => d.MUNICIPIO === nombreMunicipio);
+            if (establecimientos.length === 0) return null;
+            
+            let sumLat = 0, sumLng = 0;
+            establecimientos.forEach(est => {
+                sumLat += parseFloat(est.Latitud);
+                sumLng += parseFloat(est.Longitud);
+            });
+            
+            return L.latLng(sumLat / establecimientos.length, sumLng / establecimientos.length);
+        }
+
+        function calcularRuta() {
+            const munOrigen = document.getElementById('selRutaOrigen').value;
+            const munDestino = document.getElementById('selRutaDestino').value;
+
+            if (!munOrigen || !munDestino) {
+                alert("Por favor, seleccione el municipio de ORIGEN y de DESTINO.");
+                return;
+            }
+
+            const startPoint = obtenerCentroMunicipio(munOrigen);
+            const endPoint = obtenerCentroMunicipio(munDestino);
+
+            if (!startPoint || !endPoint) return;
+
+            if (routingControl) {
+                map.removeControl(routingControl);
+            }
+
+            routingControl = L.Routing.control({
+                waypoints: [startPoint, endPoint],
+                router: L.Routing.osrmv1({
+                    language: 'es',
+                    profile: 'driving' 
+                }),
+                lineOptions: {
+                    styles: [{ color: '#3b82f6', opacity: 0.8, weight: 6 }] 
+                },
+                createMarker: function(i, waypoint, n) {
+                    const color = i === 0 ? 'bg-emerald-500' : 'bg-red-500';
+                    const iconHtml = `<div class="w-4 h-4 rounded-full border-2 border-white shadow-lg ${color}"></div>`;
+                    return L.marker(waypoint.latLng, {
+                        icon: L.divIcon({ className: 'custom-route-marker', html: iconHtml, iconSize: [16, 16], iconAnchor: [8, 8] })
+                    });
+                },
+                show: false, 
+                addWaypoints: false,
+                fitSelectedRoutes: true
+            }).addTo(map);
+
+            routingControl.on('routesfound', function(e) {
+                const routes = e.routes;
+                const summary = routes[0].summary;
+                
+                const distanciaKm = (summary.totalDistance / 1000).toFixed(1);
+                const totalMinutos = Math.round(summary.totalTime / 60);
+                const horas = Math.floor(totalMinutos / 60);
+                const minutos = totalMinutos % 60;
+                
+                let textoTiempo = horas > 0 ? `${horas}h ${minutos}m` : `${minutos} min`;
+
+                document.getElementById('route-result').classList.remove('hidden');
+                document.getElementById('res-dist').innerText = `${distanciaKm} km`;
+                document.getElementById('res-time').innerText = textoTiempo;
+            });
+        }
 
         // --- HIGHCHARTS RESPONSIVO ---
         let ch1, ch2, ch3;
