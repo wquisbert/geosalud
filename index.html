@@ -14,12 +14,12 @@
                 extend: {
                     colors: {
                         brand: {
-                            400: '#facc15', // Amarillo vibrante
-                            500: '#eab308', // Amarillo base
-                            600: '#ca8a04', // Amarillo oscuro
+                            400: '#facc15',
+                            500: '#eab308',
+                            600: '#ca8a04',
                         },
-                        darkbase: '#0f172a', // Slate 900
-                        darksurface: '#1e293b' // Slate 800
+                        darkbase: '#0f172a',
+                        darksurface: '#1e293b'
                     }
                 }
             }
@@ -112,11 +112,10 @@
         .panel-collapsed { transform: translateY(calc(100% - 70px)); }
         @media (min-width: 1024px) { .panel-collapsed { transform: translateX(0); } }
         
-        /* Capa activa botón */
         .layer-btn.active { background-color: #facc15 !important; color: #0f172a !important; font-weight: bold; }
         .dark .layer-btn.active { background-color: #facc15 !important; color: #0f172a !important; }
         
-        /* Ocultar las instrucciones de la ruta flotantes de LRM */
+        /* Ocultar las instrucciones nativas de Routing Machine */
         .leaflet-routing-container { display: none !important; }
     </style>
 </head>
@@ -153,7 +152,7 @@
     <div id="view-map" class="view-panel active relative w-full">
         <div id="map" class="absolute inset-0 z-0 bg-slate-200 dark:bg-darkbase transition-colors"></div>
         
-        <!-- Switcher de Capas Moderno -->
+        <!-- Switcher de Capas -->
         <div class="absolute top-6 right-6 z-[400] bg-white/95 dark:bg-darksurface/95 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.5)] border border-slate-200/50 dark:border-slate-700 p-2 flex flex-col gap-1 w-14 hover:w-40 transition-all duration-300 overflow-hidden group">
             <button onclick="setLayer('osm', this)" class="layer-btn active flex items-center gap-3 p-3 rounded-xl text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all w-full whitespace-nowrap hover:bg-slate-100 dark:hover:bg-slate-700/50">
                 <i class="ph-fill ph-road-horizon text-xl flex-none"></i> <span class="opacity-0 group-hover:opacity-100 transition-opacity delay-75">Calles (OSM)</span>
@@ -178,43 +177,48 @@
 
                 <div class="p-5 flex-none bg-transparent relative border-b border-slate-200 dark:border-slate-700/50">
                     <div class="relative group mb-4">
-                        <input type="text" id="inputSearch" placeholder="Buscar por nombre o código..." class="w-full pl-12 pr-4 py-3.5 bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-400 focus:border-brand-400 focus:bg-white dark:focus:bg-darkbase outline-none transition-all shadow-inner">
+                        <input type="text" id="inputSearch" placeholder="Buscar por nombre o código..." class="w-full pl-12 pr-4 py-3.5 bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-semibold text-slate-900 dark:text-white uppercase focus:ring-2 focus:ring-brand-400 focus:border-brand-400 focus:bg-white dark:focus:bg-darkbase outline-none transition-all shadow-inner">
                         <i class="ph-bold ph-magnifying-glass absolute left-4 top-4 text-slate-400 text-lg group-focus-within:text-brand-500 transition-colors"></i>
                     </div>
                     <div class="flex gap-3">
-                        <select id="selRed" onchange="filterRed()" class="w-1/2 p-3 bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 outline-none hover:border-brand-400 focus:ring-2 focus:ring-brand-400 cursor-pointer transition-all appearance-none"><option value="">Todas las Redes</option></select>
-                        <select id="selMuni" onchange="execFilter()" class="w-1/2 p-3 bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 outline-none hover:border-brand-400 focus:ring-2 focus:ring-brand-400 cursor-pointer transition-all disabled:opacity-50 appearance-none" disabled><option value="">Municipios</option></select>
+                        <select id="selRed" onchange="filterRed()" class="w-1/2 p-3 bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 outline-none hover:border-brand-400 focus:ring-2 focus:ring-brand-400 cursor-pointer transition-all appearance-none"><option value="">TODAS LAS REDES</option></select>
+                        <select id="selMuni" onchange="execFilter()" class="w-1/2 p-3 bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 outline-none hover:border-brand-400 focus:ring-2 focus:ring-brand-400 cursor-pointer transition-all disabled:opacity-50 appearance-none" disabled><option value="">MUNICIPIOS</option></select>
                     </div>
                 </div>
 
-                <!-- --- INICIO: CALCULADORA DE RUTAS --- -->
+                <!-- --- INICIO: ENRUTAMIENTO MÚLTIPLE --- -->
                 <div class="px-5 py-4 bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700/50 flex-none transition-colors">
-                    <div class="flex items-center gap-2 mb-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                        <i class="ph-bold ph-path text-brand-500"></i>
-                        <span>Calcular Distancia</span>
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                            <i class="ph-bold ph-path text-brand-500"></i>
+                            <span>Rutas y Tramos</span>
+                        </div>
+                        <button onclick="agregarParada()" class="text-[10px] bg-slate-200 dark:bg-slate-700 hover:bg-brand-400 text-slate-700 dark:text-white px-2 py-1 rounded transition-colors font-bold">+ Agregar Destino</button>
                     </div>
                     
-                    <div class="flex gap-2">
-                        <select id="selRutaOrigen" class="w-1/2 p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 outline-none hover:border-brand-400 focus:ring-2 focus:ring-brand-400 cursor-pointer transition-all appearance-none"><option value="">Origen...</option></select>
-                        <select id="selRutaDestino" class="w-1/2 p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 outline-none hover:border-brand-400 focus:ring-2 focus:ring-brand-400 cursor-pointer transition-all appearance-none"><option value="">Destino...</option></select>
+                    <div id="waypoints-container" class="flex flex-col gap-2 max-h-32 overflow-y-auto custom-scroll pr-1">
+                        <!-- Selects generados por JS -->
                     </div>
                     
                     <button onclick="calcularRuta()" class="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 rounded-xl text-xs font-bold shadow-md hover:bg-brand-500 dark:hover:bg-brand-400 transition-colors">
-                        <i class="ph-bold ph-car-profile text-sm"></i> Trazar Ruta
+                        <i class="ph-bold ph-car-profile text-sm"></i> Generar Reporte de Ruta
                     </button>
 
-                    <div id="route-result" class="hidden mt-3 p-3 bg-brand-500/10 dark:bg-brand-400/10 border border-brand-500/20 dark:border-brand-400/20 rounded-xl">
-                        <div class="flex justify-between items-center text-slate-700 dark:text-slate-200 text-xs">
-                            <span class="font-semibold"><i class="ph-bold ph-ruler"></i> Distancia:</span>
-                            <span id="res-dist" class="font-black">-- km</span>
+                    <!-- REPORTE DINÁMICO DE KILOMETRAJE -->
+                    <div id="route-report" class="hidden mt-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
+                        <div class="bg-brand-500 text-darkbase px-3 py-2 text-xs font-black uppercase flex items-center gap-2">
+                            <i class="ph-bold ph-receipt"></i> Detalle de Kilometraje
                         </div>
-                        <div class="flex justify-between items-center text-slate-700 dark:text-slate-200 text-xs mt-1">
-                            <span class="font-semibold"><i class="ph-bold ph-clock"></i> Tiempo est.:</span>
-                            <span id="res-time" class="font-black">-- min</span>
+                        <div id="report-content" class="p-0">
+                            <!-- Lista de tramos -->
+                        </div>
+                        <div class="bg-slate-100 dark:bg-slate-800 px-3 py-2 text-xs flex justify-between font-black border-t border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
+                            <span>RECORRIDO TOTAL:</span>
+                            <span id="report-total-dist">0 km</span>
                         </div>
                     </div>
                 </div>
-                <!-- --- FIN: CALCULADORA DE RUTAS --- -->
+                <!-- --- FIN: ENRUTAMIENTO MÚLTIPLE --- -->
 
                 <div class="px-5 py-3 bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-200 dark:border-slate-700/50 flex justify-between items-center text-xs font-bold uppercase tracking-wider flex-none text-slate-500 dark:text-slate-400">
                     <span>Resultados</span>
@@ -252,7 +256,6 @@
     <!-- Scripts de Librerías -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-    <!-- Script de Leaflet Routing Machine -->
     <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 
@@ -260,11 +263,16 @@
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR1DHcWzeJllMtxhIQlpaw6byDlbsji0L4w3SZaWTQDgdz2MdeJEGfB6peldYWgEeQUzgr0hP73zwwt/pub?output=csv';
 
         let rawData=[], filteredData=[], markers={}, map, markerClusterGroup, page=1;
-        let routingControl = null; // Variable para gestionar la ruta
+        
+        // Variables para Rutas Múltiples
+        let routingControl = null; 
+        let globalMunicipios = [];
+        let waypointCount = 0;
+
         const perPage=12; 
         let isSidebarOpen = false;
 
-        // --- TEMA DINÁMICO (Local Storage) ---
+        // --- TEMA DINÁMICO ---
         const htmlNode = document.documentElement;
         let isDark = localStorage.getItem('theme') === 'dark';
         
@@ -286,9 +294,8 @@
             applyTheme();
         }
 
-        // --- MAPA ULTRA OPTIMIZADO ---
+        // --- MAPA ---
         const mapOptions = { zoomControl: false, preferCanvas: true, wheelDebounceTime: 150 };
-        
         const layerCfg = { maxZoom: 22, maxNativeZoom: 18, keepBuffer: 4, updateWhenZooming: false, updateWhenIdle: true };
         
         const mapLayers = {
@@ -365,19 +372,13 @@
                 complete: (res) => {
                     rawData = res.data.filter(r => r.Latitud && r.Longitud && r.NOMBRE);
                     
-                    // Cargar Redes
                     const redes = [...new Set(rawData.map(d=>d.RED))].sort();
                     redes.forEach(r => document.getElementById('selRed').add(new Option(r,r)));
                     
-                    // Cargar Municipios en los selects de Rutas
-                    const municipios = [...new Set(rawData.map(d=>d.MUNICIPIO))].sort();
-                    const selOrigen = document.getElementById('selRutaOrigen');
-                    const selDestino = document.getElementById('selRutaDestino');
-                    
-                    municipios.forEach(m => {
-                        selOrigen.add(new Option(m, m));
-                        selDestino.add(new Option(m, m));
-                    });
+                    // Inicializar Rutas Múltiples
+                    globalMunicipios = [...new Set(rawData.map(d=>d.MUNICIPIO))].sort();
+                    agregarParada("ORIGEN");
+                    agregarParada("DESTINO 1");
 
                     execFilter();
                 }
@@ -387,7 +388,7 @@
         function filterRed() {
             const red = document.getElementById('selRed').value;
             const m = document.getElementById('selMuni');
-            m.innerHTML = '<option value="">Municipios</option>'; m.disabled = !red;
+            m.innerHTML = '<option value="">MUNICIPIOS</option>'; m.disabled = !red;
             if(red) [...new Set(rawData.filter(d=>d.RED===red).map(d=>d.MUNICIPIO))].sort().forEach(mu=>m.add(new Option(mu,mu)));
             page=1; execFilter();
         }
@@ -476,7 +477,7 @@
                 el.innerHTML = `
                     <h4 class="font-bold text-[13px] text-slate-800 dark:text-slate-100 group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors line-clamp-1 mb-2">${d.NOMBRE}</h4>
                     <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900/50 px-2.5 py-1 rounded-md">${d.MUNICIPIO}</span>
+                        <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900/50 px-2.5 py-1 rounded-md uppercase">${d.MUNICIPIO}</span>
                         <div class="bg-slate-50 dark:bg-slate-700 p-1.5 rounded-full group-hover:bg-brand-400 group-hover:text-darkbase transition-colors">
                             <i class="ph-bold ph-arrow-right text-slate-400 dark:text-slate-400 group-hover:text-darkbase text-[10px]"></i>
                         </div>
@@ -498,7 +499,46 @@
         
         function pg(d) { page+=d; renderList(); }
 
-        // --- FUNCIONES DE CÁLCULO DE RUTAS ---
+        // --- SISTEMA DE ENRUTAMIENTO MULTIPLE ---
+        function agregarParada(label = null) {
+            waypointCount++;
+            const currentLabel = label || `DESTINO ${waypointCount - 1}`;
+            const divId = `wp-row-${waypointCount}`;
+            
+            const div = document.createElement('div');
+            div.className = "flex items-center gap-2";
+            div.id = divId;
+            
+            let optionsHtml = `<option value="">${currentLabel}...</option>`;
+            globalMunicipios.forEach(m => {
+                optionsHtml += `<option value="${m}">${m.toUpperCase()}</option>`;
+            });
+
+            // Permitir eliminar paradas extra
+            let removeBtn = (waypointCount > 2) 
+                ? `<button onclick="removerParada('${divId}')" class="text-red-500 hover:text-red-700 p-1"><i class="ph-bold ph-trash"></i></button>`
+                : `<div class="w-6"></div>`; 
+
+            div.innerHTML = `
+                <div class="badge-num bg-brand-400 text-darkbase w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black flex-none">${waypointCount}</div>
+                <select class="wp-select flex-1 p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-300 outline-none hover:border-brand-400 focus:ring-2 focus:ring-brand-400 cursor-pointer transition-all appearance-none uppercase">
+                    ${optionsHtml}
+                </select>
+                ${removeBtn}
+            `;
+            
+            document.getElementById('waypoints-container').appendChild(div);
+        }
+
+        function removerParada(rowId) {
+            document.getElementById(rowId).remove();
+            
+            // Renumerar visualmente
+            const badges = document.querySelectorAll('.badge-num');
+            badges.forEach((b, index) => { b.innerText = index + 1; });
+            waypointCount = badges.length;
+        }
+
         function obtenerCentroMunicipio(nombreMunicipio) {
             const establecimientos = rawData.filter(d => d.MUNICIPIO === nombreMunicipio);
             if (establecimientos.length === 0) return null;
@@ -508,42 +548,48 @@
                 sumLat += parseFloat(est.Latitud);
                 sumLng += parseFloat(est.Longitud);
             });
-            
             return L.latLng(sumLat / establecimientos.length, sumLng / establecimientos.length);
         }
 
         function calcularRuta() {
-            const munOrigen = document.getElementById('selRutaOrigen').value;
-            const munDestino = document.getElementById('selRutaDestino').value;
+            const selects = document.querySelectorAll('.wp-select');
+            const validWaypoints = [];
+            const validNames = [];
 
-            if (!munOrigen || !munDestino) {
-                alert("Por favor, seleccione el municipio de ORIGEN y de DESTINO.");
+            selects.forEach(sel => {
+                if (sel.value) {
+                    const pt = obtenerCentroMunicipio(sel.value);
+                    if (pt) {
+                        validWaypoints.push(pt);
+                        validNames.push(sel.value.toUpperCase());
+                    }
+                }
+            });
+
+            if (validWaypoints.length < 2) {
+                alert("Seleccione al menos un origen y un destino válidos para generar la ruta.");
                 return;
             }
 
-            const startPoint = obtenerCentroMunicipio(munOrigen);
-            const endPoint = obtenerCentroMunicipio(munDestino);
-
-            if (!startPoint || !endPoint) return;
-
-            if (routingControl) {
-                map.removeControl(routingControl);
-            }
+            if (routingControl) map.removeControl(routingControl);
 
             routingControl = L.Routing.control({
-                waypoints: [startPoint, endPoint],
+                waypoints: validWaypoints,
                 router: L.Routing.osrmv1({
                     language: 'es',
-                    profile: 'driving' 
+                    profile: 'driving'
                 }),
                 lineOptions: {
-                    styles: [{ color: '#3b82f6', opacity: 0.8, weight: 6 }] 
+                    styles: [{ color: '#2563eb', opacity: 0.7, weight: 6 }] 
                 },
                 createMarker: function(i, waypoint, n) {
-                    const color = i === 0 ? 'bg-emerald-500' : 'bg-red-500';
-                    const iconHtml = `<div class="w-4 h-4 rounded-full border-2 border-white shadow-lg ${color}"></div>`;
+                    let color = 'bg-blue-500';
+                    if (i === 0) color = 'bg-emerald-500';
+                    else if (i === n - 1) color = 'bg-red-500';
+                    
+                    const iconHtml = `<div class="w-5 h-5 rounded-full border-2 border-white shadow-lg ${color} flex items-center justify-center text-[10px] font-bold text-white">${i+1}</div>`;
                     return L.marker(waypoint.latLng, {
-                        icon: L.divIcon({ className: 'custom-route-marker', html: iconHtml, iconSize: [16, 16], iconAnchor: [8, 8] })
+                        icon: L.divIcon({ className: 'custom-route-marker', html: iconHtml, iconSize: [20, 20], iconAnchor: [10, 10] })
                     });
                 },
                 show: false, 
@@ -552,20 +598,46 @@
             }).addTo(map);
 
             routingControl.on('routesfound', function(e) {
-                const routes = e.routes;
-                const summary = routes[0].summary;
-                
-                const distanciaKm = (summary.totalDistance / 1000).toFixed(1);
-                const totalMinutos = Math.round(summary.totalTime / 60);
-                const horas = Math.floor(totalMinutos / 60);
-                const minutos = totalMinutos % 60;
-                
-                let textoTiempo = horas > 0 ? `${horas}h ${minutos}m` : `${minutos} min`;
-
-                document.getElementById('route-result').classList.remove('hidden');
-                document.getElementById('res-dist').innerText = `${distanciaKm} km`;
-                document.getElementById('res-time').innerText = textoTiempo;
+                generarReporteRuta(e.routes[0], validNames);
             });
+        }
+
+        // Generador preciso calculando distancia entre coordenadas base de los Waypoints
+        function generarReporteRuta(route, names) {
+            const container = document.getElementById('route-report');
+            const content = document.getElementById('report-content');
+            const totalLabel = document.getElementById('report-total-dist');
+            content.innerHTML = '';
+            
+            const coords = route.coordinates;
+            const wpIndices = route.waypointIndices; // Indices de coordenadas donde están las paradas
+
+            for(let i = 0; i < names.length - 1; i++) {
+                let startIndex = wpIndices[i];
+                let endIndex = wpIndices[i+1];
+                let segmentDistMeters = 0;
+                
+                // Sumar la distancia matemática entre cada punto del tramo
+                for (let j = startIndex; j < endIndex; j++) {
+                    segmentDistMeters += coords[j].distanceTo(coords[j+1]);
+                }
+                
+                let distKm = (segmentDistMeters / 1000).toFixed(1);
+                
+                content.innerHTML += `
+                    <div class="px-3 py-2 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center text-xs">
+                        <div class="flex flex-col">
+                            <span class="text-slate-500 dark:text-slate-400 text-[9px] font-bold uppercase">TRAMO ${i+1}</span>
+                            <span class="text-slate-800 dark:text-slate-200 font-semibold line-clamp-1">${names[i]} <i class="ph-bold ph-arrow-right mx-1 text-brand-500"></i> ${names[i+1]}</span>
+                        </div>
+                        <span class="font-black text-brand-600 dark:text-brand-400 bg-brand-500/10 px-2 py-1 rounded">${distKm} km</span>
+                    </div>
+                `;
+            }
+            
+            const absTotalKm = (route.summary.totalDistance / 1000).toFixed(1);
+            container.classList.remove('hidden');
+            totalLabel.innerText = `${absTotalKm} km`;
         }
 
         // --- HIGHCHARTS RESPONSIVO ---
