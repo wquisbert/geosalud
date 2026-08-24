@@ -108,8 +108,9 @@
         .layer-btn.active { background-color: #facc15 !important; color: #0f172a !important; font-weight: bold; }
         .dark .layer-btn.active { background-color: #facc15 !important; color: #0f172a !important; }
         
-        /* Ocultar UI nativa de Routing Machine */
+        /* Ocultar UI nativa de Routing Machine y la línea nativa para dibujar las nuestras */
         .leaflet-routing-container { display: none !important; }
+        .leaflet-routing-line { display: none !important; }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden bg-slate-50 dark:bg-darkbase text-slate-800 dark:text-slate-200 transition-colors duration-300">
@@ -127,7 +128,6 @@
                 </div>
             </div>
             
-            <!-- MENÚ DE NAVEGACIÓN -->
             <div class="flex items-center bg-slate-100/50 dark:bg-slate-900/50 p-1.5 rounded-2xl gap-1 border border-slate-200 dark:border-slate-700 transition-colors">
                 <button onclick="setView('explore')" id="btn-explore" class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all bg-brand-400 text-darkbase shadow-md">
                     <i class="ph-bold ph-magnifying-glass text-lg"></i> <span class="hidden sm:inline">Explorar</span>
@@ -146,26 +146,23 @@
         </div>
     </nav>
 
-    <!-- VISTA: MAPA (Explorar y Rutas comparten este contenedor) -->
+    <!-- VISTA: MAPA -->
     <div id="view-map" class="view-panel active relative w-full">
         <div id="map" class="absolute inset-0 z-0 bg-slate-200 dark:bg-darkbase transition-colors"></div>
         
-        <!-- Switcher de Capas -->
         <div class="absolute top-6 right-6 z-[400] bg-white/95 dark:bg-darksurface/95 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.5)] border border-slate-200/50 dark:border-slate-700 p-2 flex flex-col gap-1 w-14 hover:w-40 transition-all duration-300 overflow-hidden group">
             <button onclick="setLayer('osm', this)" class="layer-btn active flex items-center gap-3 p-3 rounded-xl text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all w-full whitespace-nowrap hover:bg-slate-100 dark:hover:bg-slate-700/50"><i class="ph-fill ph-road-horizon text-xl flex-none"></i> <span class="opacity-0 group-hover:opacity-100 transition-opacity delay-75">Calles (OSM)</span></button>
             <button onclick="setLayer('sat', this)" class="layer-btn flex items-center gap-3 p-3 rounded-xl text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all w-full whitespace-nowrap hover:bg-slate-100 dark:hover:bg-slate-700/50"><i class="ph-fill ph-globe-hemisphere-west text-xl flex-none"></i> <span class="opacity-0 group-hover:opacity-100 transition-opacity delay-75">Satélite</span></button>
             <button onclick="setLayer('clean', this)" class="layer-btn flex items-center gap-3 p-3 rounded-xl text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all w-full whitespace-nowrap hover:bg-slate-100 dark:hover:bg-slate-700/50"><i class="ph-fill ph-map-trifold text-xl flex-none"></i> <span class="opacity-0 group-hover:opacity-100 transition-opacity delay-75">Limpio</span></button>
         </div>
 
-        <!-- Panel Flotante Izquierdo (Dinámico) -->
         <div id="sidebarPanel" class="absolute bottom-0 left-0 lg:bottom-auto lg:top-6 lg:left-6 w-full lg:w-[420px] h-[75vh] lg:h-[calc(100vh-120px)] z-[400] flex flex-col pointer-events-none panel-transition panel-collapsed lg:panel-collapsed-none">
             
             <div class="pointer-events-auto bg-white/95 dark:bg-darksurface/95 backdrop-blur-2xl lg:rounded-3xl shadow-[0_-15px_40px_rgba(0,0,0,0.1)] dark:shadow-[0_-15px_40px_rgba(0,0,0,0.6)] border border-slate-200/50 dark:border-slate-700/50 flex flex-col h-full overflow-hidden rounded-t-3xl transition-colors duration-300">
                 
-                <!-- Toggle Mobile -->
                 <div class="lg:hidden w-full h-10 flex justify-center items-center cursor-pointer bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700/50" onclick="toggleSidebar()">
                     <div class="w-12 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-full"></div>
-                    <span id="mobileToggleText" class="absolute left-6 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest"><i class="ph-bold ph-caret-down"></i> Ocultar</span>
+                    <span id="mobileToggleText" class="absolute left-6 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest"><i class="ph-bold ph-caret-down"></i> Ocultar panel</span>
                 </div>
 
                 <!-- SUB-PANEL 1: EXPLORAR -->
@@ -194,11 +191,11 @@
                     </div>
                 </div>
 
-                <!-- SUB-PANEL 2: RUTAS DINÁMICAS (Nuevo Menú Exclusivo) -->
+                <!-- SUB-PANEL 2: RUTAS DINÁMICAS Y REPORTES -->
                 <div id="panel-routes" class="hidden flex-col h-full w-full">
                     <div class="p-5 flex-none border-b border-slate-200 dark:border-slate-700/50 bg-brand-500/10">
                         <h2 class="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2"><i class="ph-fill ph-map-trifold text-brand-500"></i> Planificador de Viáticos</h2>
-                        <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">Agrega municipios para trazar la ruta exacta y calcular kilometrajes por tramo.</p>
+                        <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-1">Traza la ruta por municipios y selecciona los tramos para interactuar en el mapa.</p>
                     </div>
                     
                     <div class="flex-1 overflow-y-auto p-5 custom-scroll">
@@ -212,13 +209,15 @@
                         </div>
                         
                         <button onclick="calcularRuta()" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 rounded-xl text-sm font-bold shadow-md hover:bg-brand-500 dark:hover:bg-brand-400 transition-colors">
-                            <i class="ph-bold ph-car-profile"></i> Trazar Ruta en el Mapa
+                            <i class="ph-bold ph-car-profile"></i> Trazar Ruta Diferenciada
                         </button>
 
-                        <!-- REPORTE DINÁMICO DE KILOMETRAJE CON WORD -->
                         <div id="route-report" class="hidden mt-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
                             <div class="bg-brand-500 text-darkbase px-3 py-2 text-xs font-black uppercase flex items-center gap-2">
                                 <i class="ph-bold ph-receipt"></i> Detalle de Tramos
+                            </div>
+                            <div class="p-2 bg-slate-50 dark:bg-slate-800/50 text-[10px] text-center text-slate-500 border-b border-slate-200 dark:border-slate-700">
+                                <i class="ph-bold ph-hand-pointing"></i> Haz clic en un tramo para resaltarlo
                             </div>
                             <div id="report-content" class="p-0">
                                 <!-- Lista de tramos -->
@@ -268,8 +267,11 @@
         let rawData=[], filteredData=[], markers={}, map, markerClusterGroup, page=1;
         const perPage=12; 
         
-        // Variables para Rutas Múltiples
+        // Variables para Rutas Múltiples y Colores
         let routingControl = null; 
+        let customRouteSegments = []; // Almacenará las líneas (polylines) de cada tramo dibujado
+        const segmentColors = ['#3b82f6', '#ec4899', '#f97316', '#8b5cf6', '#14b8a6', '#ef4444', '#6366f1', '#84cc16']; // Paleta vibrante
+        
         let globalMunicipios = [];
         let waypointCount = 0;
         let currentRouteData = [];
@@ -292,16 +294,11 @@
             updateCleanLayer();
         }
 
-        function toggleTheme() {
-            isDark = !isDark;
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            applyTheme();
-        }
+        function toggleTheme() { isDark = !isDark; localStorage.setItem('theme', isDark ? 'dark' : 'light'); applyTheme(); }
 
         // --- INICIALIZACIÓN ---
         const mapOptions = { zoomControl: false, preferCanvas: true, wheelDebounceTime: 150 };
         const layerCfg = { maxZoom: 22, maxNativeZoom: 18, keepBuffer: 4, updateWhenZooming: false, updateWhenIdle: true };
-        
         const mapLayers = {
             osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { ...layerCfg, attribution: '© OSM' }),
             sat: L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', { ...layerCfg, attribution: '© Google', maxNativeZoom: 20 }),
@@ -311,45 +308,34 @@
         let currentLayerType = 'osm', currentLayerObj = mapLayers.osm;
 
         document.addEventListener('DOMContentLoaded', () => {
-            applyTheme();
-            initMap();
-            initCharts();
-            loadData();
+            applyTheme(); initMap(); initCharts(); loadData();
             document.getElementById('inputSearch').addEventListener('input', () => { page=1; execFilter(); });
             if(window.innerWidth >= 1024) toggleSidebar(true);
         });
 
-        // --- NAVEGACIÓN Y VISTAS ---
+        // --- NAVEGACIÓN ---
         function setView(viewName) {
-            // Clases para botones
             const activeClass = "flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all bg-brand-400 text-darkbase shadow-md";
             const inactiveClass = "flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm";
             
-            // Resetear todos los botones
             document.getElementById('btn-explore').className = inactiveClass;
             document.getElementById('btn-routes').className = inactiveClass;
             document.getElementById('btn-stats').className = inactiveClass;
-
-            // Ocultar vistas principales
             document.getElementById('view-map').classList.remove('active');
             document.getElementById('view-stats').classList.remove('active');
 
             if(viewName === 'explore') {
                 document.getElementById('btn-explore').className = activeClass;
                 document.getElementById('view-map').classList.add('active');
-                document.getElementById('panel-explore').classList.remove('hidden');
-                document.getElementById('panel-explore').classList.add('flex');
-                document.getElementById('panel-routes').classList.add('hidden');
-                document.getElementById('panel-routes').classList.remove('flex');
+                document.getElementById('panel-explore').classList.remove('hidden'); document.getElementById('panel-explore').classList.add('flex');
+                document.getElementById('panel-routes').classList.add('hidden'); document.getElementById('panel-routes').classList.remove('flex');
                 setTimeout(()=>map.invalidateSize(), 200);
             } 
             else if(viewName === 'routes') {
                 document.getElementById('btn-routes').className = activeClass;
                 document.getElementById('view-map').classList.add('active');
-                document.getElementById('panel-routes').classList.remove('hidden');
-                document.getElementById('panel-routes').classList.add('flex');
-                document.getElementById('panel-explore').classList.add('hidden');
-                document.getElementById('panel-explore').classList.remove('flex');
+                document.getElementById('panel-routes').classList.remove('hidden'); document.getElementById('panel-routes').classList.add('flex');
+                document.getElementById('panel-explore').classList.add('hidden'); document.getElementById('panel-explore').classList.remove('flex');
                 setTimeout(()=>map.invalidateSize(), 200);
             } 
             else if(viewName === 'stats') {
@@ -360,49 +346,30 @@
         }
 
         function toggleSidebar(forceState = null) {
-            const panel = document.getElementById('sidebarPanel');
-            const txt = document.getElementById('mobileToggleText');
+            const panel = document.getElementById('sidebarPanel'); const txt = document.getElementById('mobileToggleText');
             isSidebarOpen = forceState !== null ? forceState : !isSidebarOpen;
-            
-            if(isSidebarOpen) {
-                panel.classList.remove('panel-collapsed');
-                txt.innerHTML = '<i class="ph-bold ph-caret-down"></i> Ocultar panel';
-            } else {
-                panel.classList.add('panel-collapsed');
-                txt.innerHTML = '<i class="ph-bold ph-caret-up"></i> Mostrar panel';
-            }
+            if(isSidebarOpen) { panel.classList.remove('panel-collapsed'); txt.innerHTML = '<i class="ph-bold ph-caret-down"></i> Ocultar panel'; } 
+            else { panel.classList.add('panel-collapsed'); txt.innerHTML = '<i class="ph-bold ph-caret-up"></i> Mostrar panel'; }
         }
 
-        // --- MAPA ---
+        // --- MAPA Y FILTROS ---
         function initMap() {
             map = L.map('map', mapOptions).setView([-16.5000, -68.1193], 12);
             L.control.zoom({ position: 'bottomright' }).addTo(map);
             map.addLayer(currentLayerObj);
-            
-            markerClusterGroup = L.markerClusterGroup({
-                chunkedLoading: true, maxClusterRadius: 45, spiderfyOnMaxZoom: true, disableClusteringAtZoom: 15,
-                removeOutsideVisibleBounds: true, animate: true
-            });
+            markerClusterGroup = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 45, spiderfyOnMaxZoom: true, disableClusteringAtZoom: 15, removeOutsideVisibleBounds: true, animate: true });
             map.addLayer(markerClusterGroup);
         }
 
         function setLayer(type, btn) {
-            document.querySelectorAll('.layer-btn').forEach(b => b.classList.remove('active'));
-            if(btn) btn.classList.add('active');
+            document.querySelectorAll('.layer-btn').forEach(b => b.classList.remove('active')); if(btn) btn.classList.add('active');
             map.removeLayer(currentLayerObj); currentLayerType = type;
             currentLayerObj = (type === 'clean') ? (isDark ? mapLayers.clean_dark : mapLayers.clean_light) : mapLayers[type];
             map.addLayer(currentLayerObj); 
         }
 
-        function updateCleanLayer() {
-            if (currentLayerType === 'clean') {
-                map.removeLayer(currentLayerObj);
-                currentLayerObj = isDark ? mapLayers.clean_dark : mapLayers.clean_light;
-                map.addLayer(currentLayerObj);
-            }
-        }
+        function updateCleanLayer() { if (currentLayerType === 'clean') { map.removeLayer(currentLayerObj); currentLayerObj = isDark ? mapLayers.clean_dark : mapLayers.clean_light; map.addLayer(currentLayerObj); } }
 
-        // --- DATOS Y FILTROS ---
         function loadData() {
             Papa.parse(CSV_URL, {
                 download: true, header: true, dynamicTyping: true, skipEmptyLines: true,
@@ -410,188 +377,120 @@
                     rawData = res.data.filter(r => r.Latitud && r.Longitud && r.NOMBRE);
                     const redes = [...new Set(rawData.map(d=>d.RED))].sort();
                     redes.forEach(r => document.getElementById('selRed').add(new Option(r,r)));
-                    
-                    // Inicializar Rutas Múltiples
                     globalMunicipios = [...new Set(rawData.map(d=>d.MUNICIPIO))].sort();
-                    agregarParada("ORIGEN");
-                    agregarParada("DESTINO 1");
-
+                    agregarParada("ORIGEN"); agregarParada("DESTINO 1");
                     execFilter();
                 }
             });
         }
 
         function filterRed() {
-            const red = document.getElementById('selRed').value;
-            const m = document.getElementById('selMuni');
+            const red = document.getElementById('selRed').value, m = document.getElementById('selMuni');
             m.innerHTML = '<option value="">MUNICIPIOS</option>'; m.disabled = !red;
             if(red) [...new Set(rawData.filter(d=>d.RED===red).map(d=>d.MUNICIPIO))].sort().forEach(mu=>m.add(new Option(mu,mu)));
             page=1; execFilter();
         }
 
         function execFilter() {
-            const txt = document.getElementById('inputSearch').value.toLowerCase();
-            const red = document.getElementById('selRed').value;
-            const mun = document.getElementById('selMuni').value;
-
-            filteredData = rawData.filter(d => {
-                const mt = (d.NOMBRE||'').toLowerCase().includes(txt) || String(d.COD_SNIS).includes(txt);
-                return mt && (!red || d.RED===red) && (!mun || d.MUNICIPIO===mun);
-            });
-
-            document.getElementById('counter').innerText = filteredData.length;
-            document.getElementById('kpi-total').innerText = filteredData.length;
+            const txt = document.getElementById('inputSearch').value.toLowerCase(), red = document.getElementById('selRed').value, mun = document.getElementById('selMuni').value;
+            filteredData = rawData.filter(d => { const mt = (d.NOMBRE||'').toLowerCase().includes(txt) || String(d.COD_SNIS).includes(txt); return mt && (!red || d.RED===red) && (!mun || d.MUNICIPIO===mun); });
+            document.getElementById('counter').innerText = filteredData.length; document.getElementById('kpi-total').innerText = filteredData.length;
             renderMap(); renderList(); updateChartsData();
         }
 
         function renderMap() {
-            markerClusterGroup.clearLayers();
-            markers = {};
-            const bounds = L.latLngBounds();
-            const markerList = [];
-
+            markerClusterGroup.clearLayers(); markers = {}; const bounds = L.latLngBounds(), markerList = [];
             filteredData.forEach(item => {
-                let lvl = String(item.NIVEL).toLowerCase();
-                let cssClass = 'pin-l1', iconClass = 'ph-first-aid', headerColor = 'bg-emerald-500';
+                let lvl = String(item.NIVEL).toLowerCase(), cssClass = 'pin-l1', iconClass = 'ph-first-aid', headerColor = 'bg-emerald-500';
                 if(lvl.includes('2')) { cssClass = 'pin-l2'; iconClass = 'ph-hospital'; headerColor = 'bg-amber-500'; } 
                 else if (lvl.includes('3')) { cssClass = 'pin-l3'; iconClass = 'ph-buildings'; headerColor = 'bg-slate-700'; }
 
-                const icon = L.divIcon({
-                    className: 'custom-div-icon',
-                    html: `<div class="pin-marker ${cssClass}"><i class="ph-fill ${iconClass} pin-icon"></i></div>`,
-                    iconSize: [34, 34], iconAnchor: [17, 34], popupAnchor: [0, -38]
-                });
-
-                const popupContent = `
-                    <div class="font-sans">
-                        <div class="${headerColor} h-3 w-full"></div>
-                        <div class="p-6 relative">
-                            <span class="absolute top-5 right-5 text-[10px] font-mono text-darkbase bg-brand-400 px-3 py-1 rounded-full font-bold shadow-sm">COD: ${item.COD_SNIS}</span>
-                            <p class="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">${item.NIVEL}</p>
-                            <h3 class="text-[17px] font-black text-slate-900 dark:text-white leading-tight mb-5 pr-20">${item.NOMBRE}</h3>
-                            <div class="space-y-3 text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-700/50">
-                                <div class="flex items-center gap-3"><div class="p-1.5 bg-yellow-100 dark:bg-yellow-900/40 text-brand-600 dark:text-brand-400 rounded-lg"><i class="ph-bold ph-map-pin text-sm"></i></div> <span class="font-semibold uppercase">${item.MUNICIPIO}</span></div>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                const icon = L.divIcon({ className: 'custom-div-icon', html: `<div class="pin-marker ${cssClass}"><i class="ph-fill ${iconClass} pin-icon"></i></div>`, iconSize: [34, 34], iconAnchor: [17, 34], popupAnchor: [0, -38] });
+                const popupContent = `<div class="font-sans"><div class="${headerColor} h-3 w-full"></div><div class="p-6 relative"><span class="absolute top-5 right-5 text-[10px] font-mono text-darkbase bg-brand-400 px-3 py-1 rounded-full font-bold shadow-sm">COD: ${item.COD_SNIS}</span><p class="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">${item.NIVEL}</p><h3 class="text-[17px] font-black text-slate-900 dark:text-white leading-tight mb-5 pr-20">${item.NOMBRE}</h3><div class="space-y-3 text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-700/50"><div class="flex items-center gap-3"><div class="p-1.5 bg-yellow-100 dark:bg-yellow-900/40 text-brand-600 dark:text-brand-400 rounded-lg"><i class="ph-bold ph-map-pin text-sm"></i></div> <span class="font-semibold uppercase">${item.MUNICIPIO}</span></div></div></div></div>`;
 
                 const m = L.marker([item.Latitud, item.Longitud], { icon: icon }).bindPopup(popupContent, { className: 'modern-popup' });
                 m.on('click', () => { map.flyTo([item.Latitud, item.Longitud], 17, { duration: 0.8 }); });
-                
                 markerList.push(m); markers[item.COD_SNIS] = m; bounds.extend([item.Latitud, item.Longitud]);
             });
-
             markerClusterGroup.addLayers(markerList);
-            const padLeft = window.innerWidth >= 1024 ? 440 : 20;
-            if(filteredData.length) map.fitBounds(bounds, { paddingTopLeft: [padLeft, 20], paddingBottomRight: [20, 20], maxZoom: 15, animate: true, duration: 1 });
+            if(filteredData.length) map.fitBounds(bounds, { paddingTopLeft: [window.innerWidth >= 1024 ? 440 : 20, 20], paddingBottomRight: [20, 20], maxZoom: 15, animate: true, duration: 1 });
         }
 
         function renderList() {
             const div = document.getElementById('resultList'); div.innerHTML = '';
-            const maxPage = Math.ceil(filteredData.length / perPage) || 1;
-            if(page > maxPage) page = maxPage; if(page < 1) page = 1;
-
-            if(filteredData.length === 0) {
-                div.innerHTML = '<div class="text-center p-8 text-slate-400 font-semibold"><i class="ph-duotone ph-warning-circle text-5xl mb-3 opacity-50"></i><br>No hay resultados</div>';
-                document.getElementById('pgInfo').innerText = `0 / 0`; return;
-            }
-
+            const maxPage = Math.ceil(filteredData.length / perPage) || 1; if(page > maxPage) page = maxPage; if(page < 1) page = 1;
+            if(filteredData.length === 0) { div.innerHTML = '<div class="text-center p-8 text-slate-400 font-semibold">No hay resultados</div>'; document.getElementById('pgInfo').innerText = `0 / 0`; return; }
             filteredData.slice((page-1)*perPage, page*perPage).forEach(d => {
                 let border = d.NIVEL.includes('3') ? 'border-l-slate-500' : (d.NIVEL.includes('2') ? 'border-l-amber-500' : 'border-l-emerald-500');
                 const el = document.createElement('div');
                 el.className = `p-4 bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-100 dark:border-slate-700 border-l-[4px] ${border} shadow-sm hover:shadow-md cursor-pointer transition-all duration-300 hover:-translate-y-1 group`;
                 el.innerHTML = `<h4 class="font-bold text-[13px] text-slate-800 dark:text-slate-100 group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors line-clamp-1 mb-2 uppercase">${d.NOMBRE}</h4><div class="flex justify-between items-center"><span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900/50 px-2.5 py-1 rounded-md uppercase">${d.MUNICIPIO}</span><div class="bg-slate-50 dark:bg-slate-700 p-1.5 rounded-full group-hover:bg-brand-400 group-hover:text-darkbase transition-colors"><i class="ph-bold ph-arrow-right text-slate-400 dark:text-slate-400 group-hover:text-darkbase text-[10px]"></i></div></div>`;
-                el.onclick = () => {
-                    if(window.innerWidth < 1024) toggleSidebar(false);
-                    if(markers[d.COD_SNIS]) markerClusterGroup.zoomToShowLayer(markers[d.COD_SNIS], () => { map.flyTo([d.Latitud, d.Longitud], 18, { duration: 0.8 }); setTimeout(() => markers[d.COD_SNIS].openPopup(), 600); });
-                };
+                el.onclick = () => { if(window.innerWidth < 1024) toggleSidebar(false); if(markers[d.COD_SNIS]) markerClusterGroup.zoomToShowLayer(markers[d.COD_SNIS], () => { map.flyTo([d.Latitud, d.Longitud], 18, { duration: 0.8 }); setTimeout(() => markers[d.COD_SNIS].openPopup(), 600); }); };
                 div.appendChild(el);
             });
             document.getElementById('pgInfo').innerText = `${page} / ${maxPage}`;
         }
         function pg(d) { page+=d; renderList(); }
 
-        // --- SISTEMA DE RUTAS EXACTAS (MEDOIDES Y JERARQUÍA) ---
+        // --- SISTEMA INTERACTIVO DE RUTAS POR TRAMOS (NUEVO) ---
         function agregarParada(label = null) {
             waypointCount++;
-            const currentLabel = label || `DESTINO ${waypointCount - 1}`;
             const divId = `wp-row-${waypointCount}`;
-            const div = document.createElement('div');
-            div.className = "flex items-center gap-2";
-            div.id = divId;
-            
-            let optionsHtml = `<option value="">${currentLabel}...</option>`;
+            const div = document.createElement('div'); div.className = "flex items-center gap-2"; div.id = divId;
+            let optionsHtml = `<option value="">${label || `DESTINO ${waypointCount - 1}`}...</option>`;
             globalMunicipios.forEach(m => { optionsHtml += `<option value="${m}">${m.toUpperCase()}</option>`; });
             let removeBtn = (waypointCount > 2) ? `<button onclick="removerParada('${divId}')" class="text-red-500 hover:text-red-700 bg-red-50 dark:bg-red-900/30 p-2 rounded-lg"><i class="ph-bold ph-trash"></i></button>` : `<div class="w-8"></div>`; 
-
             div.innerHTML = `<div class="badge-num bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black flex-none">${waypointCount}</div><select class="wp-select flex-1 p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 outline-none hover:border-brand-400 focus:ring-2 focus:ring-brand-400 cursor-pointer transition-all appearance-none uppercase shadow-sm">${optionsHtml}</select>${removeBtn}`;
             document.getElementById('waypoints-container').appendChild(div);
         }
 
         function removerParada(rowId) {
             document.getElementById(rowId).remove();
-            const badges = document.querySelectorAll('.badge-num');
-            badges.forEach((b, index) => { b.innerText = index + 1; });
-            waypointCount = badges.length;
+            document.querySelectorAll('.badge-num').forEach((b, index) => { b.innerText = index + 1; });
+            waypointCount = document.querySelectorAll('.badge-num').length;
         }
 
-        // NUEVO: Algoritmo de precisión para encontrar el centro real del municipio
+        function limpiarTramosVisuales() {
+            customRouteSegments.forEach(line => map.removeLayer(line));
+            customRouteSegments = [];
+        }
+
         function obtenerCentroMunicipioExacto(nombreMunicipio) {
             const establecimientos = rawData.filter(d => d.MUNICIPIO === nombreMunicipio);
             if (establecimientos.length === 0) return null;
-            
-            // 1. Buscar el hospital de mayor nivel (suele estar en la capital)
-            let capital = establecimientos.find(e => String(e.NIVEL).includes('3'));
-            if (!capital) capital = establecimientos.find(e => String(e.NIVEL).includes('2'));
-            
-            // 2. Buscar un centro que se llame igual que el municipio
+            let capital = establecimientos.find(e => String(e.NIVEL).includes('3')) || establecimientos.find(e => String(e.NIVEL).includes('2')) || establecimientos.find(e => e.NOMBRE.toUpperCase().includes(nombreMunicipio.toUpperCase()));
             if (!capital) {
-                capital = establecimientos.find(e => e.NOMBRE.toUpperCase().includes(nombreMunicipio.toUpperCase()));
-            }
-            
-            // 3. Si no hay, calcular el medoide (el centro más cercano al centroide geográfico)
-            if (!capital) {
-                let sumLat = 0, sumLng = 0;
-                establecimientos.forEach(est => { sumLat += parseFloat(est.Latitud); sumLng += parseFloat(est.Longitud); });
+                let sumLat = 0, sumLng = 0; establecimientos.forEach(est => { sumLat += parseFloat(est.Latitud); sumLng += parseFloat(est.Longitud); });
                 const avgLat = sumLat / establecimientos.length, avgLng = sumLng / establecimientos.length;
-                
                 let minDist = Infinity;
                 establecimientos.forEach(est => {
-                    const lat = parseFloat(est.Latitud), lng = parseFloat(est.Longitud);
-                    const dist = Math.pow(lat - avgLat, 2) + Math.pow(lng - avgLng, 2);
+                    const dist = Math.pow(parseFloat(est.Latitud) - avgLat, 2) + Math.pow(parseFloat(est.Longitud) - avgLng, 2);
                     if (dist < minDist) { minDist = dist; capital = est; }
                 });
             }
-            
             return L.latLng(parseFloat(capital.Latitud), parseFloat(capital.Longitud));
         }
 
         function calcularRuta() {
             const selects = document.querySelectorAll('.wp-select');
             const validWaypoints = [], validNames = [];
-
             selects.forEach(sel => {
-                if (sel.value) {
-                    const pt = obtenerCentroMunicipioExacto(sel.value);
-                    if (pt) { validWaypoints.push(pt); validNames.push(sel.value.toUpperCase()); }
-                }
+                if (sel.value) { const pt = obtenerCentroMunicipioExacto(sel.value); if (pt) { validWaypoints.push(pt); validNames.push(sel.value.toUpperCase()); } }
             });
-
             if (validWaypoints.length < 2) { alert("Seleccione al menos un origen y un destino."); return; }
 
-            if (routingControl) map.removeControl(routingControl);
+            if (routingControl) { map.removeControl(routingControl); limpiarTramosVisuales(); }
 
             routingControl = L.Routing.control({
                 waypoints: validWaypoints,
                 router: L.Routing.osrmv1({ language: 'es', profile: 'driving' }),
-                lineOptions: { styles: [{ color: '#2563eb', opacity: 0.8, weight: 6 }] },
+                lineOptions: { styles: [{ opacity: 0, weight: 0 }] }, // Ocultamos la línea nativa (la dibujaremos tramo por tramo)
                 createMarker: function(i, wp, n) {
-                    let color = (i === 0) ? 'bg-emerald-500' : ((i === n - 1) ? 'bg-red-500' : 'bg-blue-500');
-                    const iconHtml = `<div class="w-6 h-6 rounded-full border-[3px] border-white shadow-lg ${color} flex items-center justify-center text-[11px] font-black text-white">${i+1}</div>`;
+                    let color = (i === 0) ? 'bg-emerald-500' : ((i === n - 1) ? 'bg-red-500' : 'bg-slate-800');
+                    const iconHtml = `<div class="w-6 h-6 rounded-full border-[3px] border-white shadow-[0_4px_10px_rgba(0,0,0,0.4)] ${color} flex items-center justify-center text-[11px] font-black text-white z-50">${i+1}</div>`;
                     return L.marker(wp.latLng, { icon: L.divIcon({ className: 'custom-route-marker', html: iconHtml, iconSize: [24, 24], iconAnchor: [12, 12] }) });
                 },
-                show: false, addWaypoints: false, fitSelectedRoutes: true
+                show: false, addWaypoints: false, fitSelectedRoutes: false // Lo controlaremos manualmente
             }).addTo(map);
 
             routingControl.on('routesfound', function(e) { generarReporteRuta(e.routes[0], validNames); });
@@ -599,31 +498,73 @@
 
         function generarReporteRuta(route, names) {
             const container = document.getElementById('route-report'), content = document.getElementById('report-content'), totalLabel = document.getElementById('report-total-dist');
-            content.innerHTML = ''; currentRouteData = []; 
+            content.innerHTML = ''; currentRouteData = []; limpiarTramosVisuales();
+            
             const coords = route.coordinates, wpIndices = route.waypointIndices; 
+            const boundsForZoom = L.latLngBounds();
 
             for(let i = 0; i < names.length - 1; i++) {
-                let startIndex = wpIndices[i], endIndex = wpIndices[i+1], segmentDistMeters = 0;
-                for (let j = startIndex; j < endIndex; j++) { segmentDistMeters += coords[j].distanceTo(coords[j+1]); }
+                let startIndex = wpIndices[i], endIndex = wpIndices[i+1];
+                let segmentCoords = [], segmentDistMeters = 0;
+                
+                // Extraer coordenadas para este tramo específico
+                for (let j = startIndex; j <= endIndex; j++) {
+                    segmentCoords.push([coords[j].lat, coords[j].lng]);
+                    boundsForZoom.extend([coords[j].lat, coords[j].lng]);
+                    if (j < endIndex) segmentDistMeters += coords[j].distanceTo(coords[j+1]);
+                }
+                
                 let distKm = (segmentDistMeters / 1000).toFixed(1);
+                let tramColor = segmentColors[i % segmentColors.length];
+
+                // Dibujar el tramo con su propio color
+                let polyline = L.polyline(segmentCoords, { color: tramColor, weight: 6, opacity: 0.8, lineCap: 'round', lineJoin: 'round' }).addTo(map);
+                customRouteSegments.push(polyline);
                 
                 currentRouteData.push({ tramo: i + 1, origen: names[i], destino: names[i+1], distancia: distKm });
                 
+                // Generar UI interactiva en el panel
                 content.innerHTML += `
-                    <div class="px-3 py-2.5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center text-xs">
-                        <div class="flex flex-col gap-0.5">
+                    <div id="tram-card-${i}" onclick="resaltarTramo(${i})" class="tram-item cursor-pointer px-3 py-3 border-l-[6px] border-b border-slate-100 dark:border-slate-800 flex justify-between items-center text-xs hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors" style="border-left-color: ${tramColor}">
+                        <div class="flex flex-col gap-1">
                             <span class="text-slate-500 dark:text-slate-400 text-[9px] font-black uppercase tracking-wider">TRAMO ${i+1}</span>
-                            <span class="text-slate-800 dark:text-slate-200 font-bold flex items-center gap-1.5">${names[i]} <i class="ph-bold ph-arrow-right text-brand-500"></i> ${names[i+1]}</span>
+                            <span class="text-slate-800 dark:text-slate-200 font-bold flex items-center gap-1.5">${names[i]} <i class="ph-bold ph-arrow-right" style="color: ${tramColor}"></i> ${names[i+1]}</span>
                         </div>
-                        <span class="font-black text-brand-600 dark:text-brand-400 bg-brand-500/10 px-2.5 py-1 rounded-lg border border-brand-500/20">${distKm} km</span>
+                        <span class="font-black text-slate-800 dark:text-slate-200 px-2.5 py-1.5 rounded-lg border shadow-sm" style="background-color: ${tramColor}15; border-color: ${tramColor}40">${distKm} km</span>
                     </div>
                 `;
             }
+            
+            // Ajustar vista a toda la ruta inicialmente
+            map.fitBounds(boundsForZoom, { padding: [50, 50], animate: true });
             
             currentTotalKm = (route.summary.totalDistance / 1000).toFixed(1);
             container.classList.remove('hidden'); totalLabel.innerText = `${currentTotalKm} km`;
         }
 
+        // Función para enfocar un tramo específico al hacer clic
+        function resaltarTramo(index) {
+            // 1. Restaurar el estilo de todos los tramos a la normalidad
+            customRouteSegments.forEach((line, i) => {
+                let color = segmentColors[i % segmentColors.length];
+                line.setStyle({ weight: 5, opacity: 0.5 });
+                document.getElementById(`tram-card-${i}`).classList.remove('bg-slate-100', 'dark:bg-slate-800');
+            });
+            
+            // 2. Resaltar la línea seleccionada
+            let selectedLine = customRouteSegments[index];
+            selectedLine.setStyle({ weight: 10, opacity: 1 });
+            selectedLine.bringToFront();
+            
+            // 3. Resaltar la tarjeta en el UI
+            document.getElementById(`tram-card-${index}`).classList.add('bg-slate-100', 'dark:bg-slate-800');
+            
+            // 4. Volar hacia el tramo con el padding adecuado para no quedar detrás del menú
+            const padLeft = window.innerWidth >= 1024 ? 440 : 20;
+            map.fitBounds(selectedLine.getBounds(), { paddingTopLeft: [padLeft, 50], paddingBottomRight: [50, 50], animate: true, duration: 0.8 });
+        }
+
+        // --- EXPORTACIÓN A WORD ---
         function exportarWord() {
             if (currentRouteData.length === 0) return;
             const fechaActual = new Date().toLocaleDateString('es-BO');
