@@ -181,12 +181,12 @@
                         <i class="ph-bold ph-magnifying-glass absolute left-4 top-4 text-slate-400 text-lg group-focus-within:text-brand-500 transition-colors"></i>
                     </div>
                     <div class="flex gap-3">
-                        <select id="selRed" onchange="filterRed()" class="w-1/2 p-3 bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 outline-none hover:border-brand-400 focus:ring-2 focus:ring-brand-400 cursor-pointer transition-all appearance-none"><option value="">TODAS LAS REDES</option></select>
-                        <select id="selMuni" onchange="execFilter()" class="w-1/2 p-3 bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 outline-none hover:border-brand-400 focus:ring-2 focus:ring-brand-400 cursor-pointer transition-all disabled:opacity-50 appearance-none" disabled><option value="">MUNICIPIOS</option></select>
+                        <select id="selRed" onchange="filterRed()" class="w-1/2 p-3 bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 outline-none hover:border-brand-400 focus:ring-2 focus:ring-brand-400 cursor-pointer transition-all appearance-none uppercase"><option value="">TODAS LAS REDES</option></select>
+                        <select id="selMuni" onchange="execFilter()" class="w-1/2 p-3 bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 outline-none hover:border-brand-400 focus:ring-2 focus:ring-brand-400 cursor-pointer transition-all disabled:opacity-50 appearance-none uppercase" disabled><option value="">MUNICIPIOS</option></select>
                     </div>
                 </div>
 
-                <!-- --- INICIO: ENRUTAMIENTO MÚLTIPLE --- -->
+                <!-- --- INICIO: ENRUTAMIENTO Y EXPORTACIÓN A WORD --- -->
                 <div class="px-5 py-4 bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700/50 flex-none transition-colors">
                     <div class="flex justify-between items-center mb-3">
                         <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -204,7 +204,7 @@
                         <i class="ph-bold ph-car-profile text-sm"></i> Generar Reporte de Ruta
                     </button>
 
-                    <!-- REPORTE DINÁMICO DE KILOMETRAJE -->
+                    <!-- REPORTE DINÁMICO DE KILOMETRAJE CON WORD -->
                     <div id="route-report" class="hidden mt-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
                         <div class="bg-brand-500 text-darkbase px-3 py-2 text-xs font-black uppercase flex items-center gap-2">
                             <i class="ph-bold ph-receipt"></i> Detalle de Kilometraje
@@ -212,13 +212,18 @@
                         <div id="report-content" class="p-0">
                             <!-- Lista de tramos -->
                         </div>
-                        <div class="bg-slate-100 dark:bg-slate-800 px-3 py-2 text-xs flex justify-between font-black border-t border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
-                            <span>RECORRIDO TOTAL:</span>
-                            <span id="report-total-dist">0 km</span>
+                        <div class="bg-slate-100 dark:bg-slate-800 px-3 py-3 text-xs flex flex-col gap-3 font-black border-t border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
+                            <div class="flex justify-between items-center">
+                                <span>RECORRIDO TOTAL:</span>
+                                <span id="report-total-dist" class="text-sm">0 km</span>
+                            </div>
+                            <button onclick="exportarWord()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors flex justify-center items-center gap-2 shadow-md">
+                                <i class="ph-bold ph-file-doc text-base"></i> Generar Word (Viáticos)
+                            </button>
                         </div>
                     </div>
                 </div>
-                <!-- --- FIN: ENRUTAMIENTO MÚLTIPLE --- -->
+                <!-- --- FIN: ENRUTAMIENTO Y EXPORTACIÓN A WORD --- -->
 
                 <div class="px-5 py-3 bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-200 dark:border-slate-700/50 flex justify-between items-center text-xs font-bold uppercase tracking-wider flex-none text-slate-500 dark:text-slate-400">
                     <span>Resultados</span>
@@ -264,10 +269,12 @@
 
         let rawData=[], filteredData=[], markers={}, map, markerClusterGroup, page=1;
         
-        // Variables para Rutas Múltiples
+        // Variables para Rutas Múltiples y Exportación
         let routingControl = null; 
         let globalMunicipios = [];
         let waypointCount = 0;
+        let currentRouteData = [];
+        let currentTotalKm = 0;
 
         const perPage=12; 
         let isSidebarOpen = false;
@@ -436,9 +443,9 @@
                             <h3 class="text-[17px] font-black text-slate-900 dark:text-white leading-tight mb-5 pr-20">${item.NOMBRE}</h3>
                             
                             <div class="space-y-3 text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-700/50">
-                                <div class="flex items-center gap-3"><div class="p-1.5 bg-yellow-100 dark:bg-yellow-900/40 text-brand-600 dark:text-brand-400 rounded-lg"><i class="ph-bold ph-map-pin text-sm"></i></div> <span class="font-semibold">${item.MUNICIPIO}</span></div>
-                                <div class="flex items-center gap-3"><div class="p-1.5 bg-yellow-100 dark:bg-yellow-900/40 text-brand-600 dark:text-brand-400 rounded-lg"><i class="ph-bold ph-users-three text-sm"></i></div> <span class="font-medium">Red: ${item.RED}</span></div>
-                                <div class="flex items-center gap-3"><div class="p-1.5 bg-yellow-100 dark:bg-yellow-900/40 text-brand-600 dark:text-brand-400 rounded-lg"><i class="ph-bold ph-tag text-sm"></i></div> <span class="font-medium">${item.SUBSECTOR}</span></div>
+                                <div class="flex items-center gap-3"><div class="p-1.5 bg-yellow-100 dark:bg-yellow-900/40 text-brand-600 dark:text-brand-400 rounded-lg"><i class="ph-bold ph-map-pin text-sm"></i></div> <span class="font-semibold uppercase">${item.MUNICIPIO}</span></div>
+                                <div class="flex items-center gap-3"><div class="p-1.5 bg-yellow-100 dark:bg-yellow-900/40 text-brand-600 dark:text-brand-400 rounded-lg"><i class="ph-bold ph-users-three text-sm"></i></div> <span class="font-medium uppercase">RED: ${item.RED}</span></div>
+                                <div class="flex items-center gap-3"><div class="p-1.5 bg-yellow-100 dark:bg-yellow-900/40 text-brand-600 dark:text-brand-400 rounded-lg"><i class="ph-bold ph-tag text-sm"></i></div> <span class="font-medium uppercase">${item.SUBSECTOR}</span></div>
                             </div>
                         </div>
                     </div>
@@ -475,7 +482,7 @@
                 const el = document.createElement('div');
                 el.className = `p-4 bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-100 dark:border-slate-700 border-l-[4px] ${border} shadow-sm hover:shadow-md cursor-pointer transition-all duration-300 hover:-translate-y-1 group`;
                 el.innerHTML = `
-                    <h4 class="font-bold text-[13px] text-slate-800 dark:text-slate-100 group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors line-clamp-1 mb-2">${d.NOMBRE}</h4>
+                    <h4 class="font-bold text-[13px] text-slate-800 dark:text-slate-100 group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors line-clamp-1 mb-2 uppercase">${d.NOMBRE}</h4>
                     <div class="flex justify-between items-center">
                         <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900/50 px-2.5 py-1 rounded-md uppercase">${d.MUNICIPIO}</span>
                         <div class="bg-slate-50 dark:bg-slate-700 p-1.5 rounded-full group-hover:bg-brand-400 group-hover:text-darkbase transition-colors">
@@ -499,7 +506,7 @@
         
         function pg(d) { page+=d; renderList(); }
 
-        // --- SISTEMA DE ENRUTAMIENTO MULTIPLE ---
+        // --- SISTEMA DE ENRUTAMIENTO MULTIPLE Y WORD ---
         function agregarParada(label = null) {
             waypointCount++;
             const currentLabel = label || `DESTINO ${waypointCount - 1}`;
@@ -514,7 +521,6 @@
                 optionsHtml += `<option value="${m}">${m.toUpperCase()}</option>`;
             });
 
-            // Permitir eliminar paradas extra
             let removeBtn = (waypointCount > 2) 
                 ? `<button onclick="removerParada('${divId}')" class="text-red-500 hover:text-red-700 p-1"><i class="ph-bold ph-trash"></i></button>`
                 : `<div class="w-6"></div>`; 
@@ -532,8 +538,6 @@
 
         function removerParada(rowId) {
             document.getElementById(rowId).remove();
-            
-            // Renumerar visualmente
             const badges = document.querySelectorAll('.badge-num');
             badges.forEach((b, index) => { b.innerText = index + 1; });
             waypointCount = badges.length;
@@ -602,27 +606,29 @@
             });
         }
 
-        // Generador preciso calculando distancia entre coordenadas base de los Waypoints
         function generarReporteRuta(route, names) {
             const container = document.getElementById('route-report');
             const content = document.getElementById('report-content');
             const totalLabel = document.getElementById('report-total-dist');
+            
             content.innerHTML = '';
+            currentRouteData = []; 
             
             const coords = route.coordinates;
-            const wpIndices = route.waypointIndices; // Indices de coordenadas donde están las paradas
+            const wpIndices = route.waypointIndices; 
 
             for(let i = 0; i < names.length - 1; i++) {
                 let startIndex = wpIndices[i];
                 let endIndex = wpIndices[i+1];
                 let segmentDistMeters = 0;
                 
-                // Sumar la distancia matemática entre cada punto del tramo
                 for (let j = startIndex; j < endIndex; j++) {
                     segmentDistMeters += coords[j].distanceTo(coords[j+1]);
                 }
                 
                 let distKm = (segmentDistMeters / 1000).toFixed(1);
+                
+                currentRouteData.push({ tramo: i + 1, origen: names[i], destino: names[i+1], distancia: distKm });
                 
                 content.innerHTML += `
                     <div class="px-3 py-2 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center text-xs">
@@ -635,9 +641,91 @@
                 `;
             }
             
-            const absTotalKm = (route.summary.totalDistance / 1000).toFixed(1);
+            currentTotalKm = (route.summary.totalDistance / 1000).toFixed(1);
             container.classList.remove('hidden');
-            totalLabel.innerText = `${absTotalKm} km`;
+            totalLabel.innerText = `${currentTotalKm} km`;
+        }
+
+        function exportarWord() {
+            if (currentRouteData.length === 0) {
+                alert("No hay datos de ruta generados para exportar.");
+                return;
+            }
+
+            const fechaActual = new Date().toLocaleDateString('es-BO');
+
+            let tablaHTML = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head>
+                    <meta charset='utf-8'>
+                    <title>Reporte de Viáticos</title>
+                    <style>
+                        body { font-family: 'Arial', sans-serif; }
+                        table { border-collapse: collapse; width: 100%; margin-top: 20px; font-size: 11pt; }
+                        th, td { border: 1px solid #000; padding: 10px; text-align: left; }
+                        th { background-color: #e2e8f0; font-weight: bold; text-align: center; }
+                        h2, h4 { text-align: center; margin: 5px 0; }
+                        .text-center { text-align: center; }
+                        .text-right { text-align: right; }
+                    </style>
+                </head>
+                <body>
+                    <h2>SEDES LA PAZ</h2>
+                    <h4>REPORTE DE RUTAS Y CÁLCULO DE VIÁTICOS</h4>
+                    <p><strong>FECHA:</strong> ${fechaActual}</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>N° TRAMO</th>
+                                <th>MUNICIPIO ORIGEN</th>
+                                <th>MUNICIPIO DESTINO</th>
+                                <th>DISTANCIA (KM)</th>
+                                <th>MONTO DE VIÁTICO (Bs.)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            currentRouteData.forEach(item => {
+                tablaHTML += `
+                    <tr>
+                        <td class="text-center">${item.tramo}</td>
+                        <td>${item.origen}</td>
+                        <td>${item.destino}</td>
+                        <td class="text-right">${item.distancia}</td>
+                        <td></td>
+                    </tr>
+                `;
+            });
+
+            tablaHTML += `
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-right" style="font-weight: bold;">TOTAL RECORRIDO:</td>
+                                <td class="text-right" style="font-weight: bold;">${currentTotalKm}</td>
+                                <td style="background-color: #f8fafc;"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <br>
+                    <p><strong>FIRMA RESPONSABLE:</strong> ___________________________</p>
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob(['\ufeff', tablaHTML], { type: 'application/msword' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            
+            link.href = url;
+            link.download = `Reporte_Viaticos_Ruta_${fechaActual.replace(/\//g, '-')}.doc`;
+            
+            document.body.appendChild(link);
+            link.click();
+            
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
 
         // --- HIGHCHARTS RESPONSIVO ---
