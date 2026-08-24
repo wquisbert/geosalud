@@ -46,7 +46,7 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* --- ESTILOS DE PINES Y ANIMACIONES --- */
+        /* --- ESTILOS DE PINES --- */
         .pin-marker {
             width: 34px; height: 34px; border-radius: 50% 50% 50% 0;
             background: #fff; position: absolute; transform: rotate(-45deg);
@@ -67,7 +67,6 @@
         /* --- CLUSTERS PREMIUM --- */
         .marker-cluster { background-clip: padding-box; border-radius: 20px; transition: all 0.3s ease; }
         .marker-cluster div { width: 30px; height: 30px; margin-left: 5px; margin-top: 5px; text-align: center; border-radius: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
-        
         .marker-cluster-small { background-color: rgba(250, 204, 21, 0.3); }
         .marker-cluster-small div { background-color: rgba(250, 204, 21, 0.95); color: #0f172a; border: 2px solid #fff; box-shadow: 0 4px 12px rgba(250, 204, 21, 0.4); }
         .marker-cluster-medium { background-color: rgba(234, 179, 8, 0.3); }
@@ -79,16 +78,10 @@
             border-radius: 24px; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.2);
             padding: 0; border: 1px solid rgba(255, 255, 255, 0.5); overflow: hidden;
         }
-        .dark .modern-popup .leaflet-popup-content-wrapper {
-            background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(250, 204, 21, 0.2); box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6);
-        }
+        .dark .modern-popup .leaflet-popup-content-wrapper { background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(250, 204, 21, 0.2); box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6); }
         .modern-popup .leaflet-popup-tip { background: rgba(255,255,255,0.85); }
         .dark .modern-popup .leaflet-popup-tip { background: rgba(30, 41, 59, 0.85); }
-        
-        .modern-popup a.leaflet-popup-close-button {
-            color: #1e293b !important; top: 12px; right: 12px; background: rgba(0,0,0,0.05); border-radius: 50%; width: 28px; height: 28px;
-            display: flex; align-items: center; justify-content: center; transition: all 0.2s;
-        }
+        .modern-popup a.leaflet-popup-close-button { color: #1e293b !important; top: 12px; right: 12px; background: rgba(0,0,0,0.05); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
         .dark .modern-popup a.leaflet-popup-close-button { color: #f8fafc !important; background: rgba(255,255,255,0.1); }
         .modern-popup a.leaflet-popup-close-button:hover { background: #facc15; color: #0f172a !important; transform: scale(1.1); }
 
@@ -115,13 +108,13 @@
         .layer-btn.active { background-color: #facc15 !important; color: #0f172a !important; font-weight: bold; }
         .dark .layer-btn.active { background-color: #facc15 !important; color: #0f172a !important; }
         
-        /* Ocultar las instrucciones nativas de Routing Machine */
+        /* Ocultar UI nativa de Routing Machine */
         .leaflet-routing-container { display: none !important; }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden bg-slate-50 dark:bg-darkbase text-slate-800 dark:text-slate-200 transition-colors duration-300">
 
-    <!-- NAVBAR -->
+    <!-- NAVBAR PRINCIPAL -->
     <nav class="bg-white/80 dark:bg-darksurface/80 backdrop-blur-lg shadow-sm dark:shadow-xl z-50 h-[76px] flex-none border-b border-slate-200 dark:border-slate-700/50 transition-colors duration-300">
         <div class="container mx-auto px-4 lg:px-6 h-full flex justify-between items-center">
             <div class="flex items-center gap-3">
@@ -130,12 +123,17 @@
                 </div>
                 <div class="hidden sm:block">
                     <h1 class="text-xl font-extrabold tracking-tight leading-none text-slate-900 dark:text-white">SEDES LA PAZ</h1>
-                    <p class="text-[10px] text-brand-600 dark:text-brand-400 font-bold uppercase tracking-widest mt-0.5">Visor Interactivo</p>
+                    <p class="text-[10px] text-brand-600 dark:text-brand-400 font-bold uppercase tracking-widest mt-0.5">Visor y Rutas</p>
                 </div>
             </div>
+            
+            <!-- MENÚ DE NAVEGACIÓN -->
             <div class="flex items-center bg-slate-100/50 dark:bg-slate-900/50 p-1.5 rounded-2xl gap-1 border border-slate-200 dark:border-slate-700 transition-colors">
-                <button onclick="setView('map')" id="btn-map" class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all bg-brand-400 text-darkbase shadow-md">
-                    <i class="ph-bold ph-map-pin text-lg"></i> <span class="hidden sm:inline">Mapa</span>
+                <button onclick="setView('explore')" id="btn-explore" class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all bg-brand-400 text-darkbase shadow-md">
+                    <i class="ph-bold ph-magnifying-glass text-lg"></i> <span class="hidden sm:inline">Explorar</span>
+                </button>
+                <button onclick="setView('routes')" id="btn-routes" class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm">
+                    <i class="ph-bold ph-path text-lg"></i> <span class="hidden sm:inline">Rutas</span>
                 </button>
                 <button onclick="setView('stats')" id="btn-stats" class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm">
                     <i class="ph-bold ph-chart-bar text-lg"></i> <span class="hidden sm:inline">Datos</span>
@@ -148,113 +146,113 @@
         </div>
     </nav>
 
-    <!-- VISTA MAPA -->
+    <!-- VISTA: MAPA (Explorar y Rutas comparten este contenedor) -->
     <div id="view-map" class="view-panel active relative w-full">
         <div id="map" class="absolute inset-0 z-0 bg-slate-200 dark:bg-darkbase transition-colors"></div>
         
         <!-- Switcher de Capas -->
         <div class="absolute top-6 right-6 z-[400] bg-white/95 dark:bg-darksurface/95 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.5)] border border-slate-200/50 dark:border-slate-700 p-2 flex flex-col gap-1 w-14 hover:w-40 transition-all duration-300 overflow-hidden group">
-            <button onclick="setLayer('osm', this)" class="layer-btn active flex items-center gap-3 p-3 rounded-xl text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all w-full whitespace-nowrap hover:bg-slate-100 dark:hover:bg-slate-700/50">
-                <i class="ph-fill ph-road-horizon text-xl flex-none"></i> <span class="opacity-0 group-hover:opacity-100 transition-opacity delay-75">Calles (OSM)</span>
-            </button>
-            <button onclick="setLayer('sat', this)" class="layer-btn flex items-center gap-3 p-3 rounded-xl text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all w-full whitespace-nowrap hover:bg-slate-100 dark:hover:bg-slate-700/50">
-                <i class="ph-fill ph-globe-hemisphere-west text-xl flex-none"></i> <span class="opacity-0 group-hover:opacity-100 transition-opacity delay-75">Satélite</span>
-            </button>
-            <button onclick="setLayer('clean', this)" class="layer-btn flex items-center gap-3 p-3 rounded-xl text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all w-full whitespace-nowrap hover:bg-slate-100 dark:hover:bg-slate-700/50">
-                <i class="ph-fill ph-map-trifold text-xl flex-none"></i> <span class="opacity-0 group-hover:opacity-100 transition-opacity delay-75">Limpio</span>
-            </button>
+            <button onclick="setLayer('osm', this)" class="layer-btn active flex items-center gap-3 p-3 rounded-xl text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all w-full whitespace-nowrap hover:bg-slate-100 dark:hover:bg-slate-700/50"><i class="ph-fill ph-road-horizon text-xl flex-none"></i> <span class="opacity-0 group-hover:opacity-100 transition-opacity delay-75">Calles (OSM)</span></button>
+            <button onclick="setLayer('sat', this)" class="layer-btn flex items-center gap-3 p-3 rounded-xl text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all w-full whitespace-nowrap hover:bg-slate-100 dark:hover:bg-slate-700/50"><i class="ph-fill ph-globe-hemisphere-west text-xl flex-none"></i> <span class="opacity-0 group-hover:opacity-100 transition-opacity delay-75">Satélite</span></button>
+            <button onclick="setLayer('clean', this)" class="layer-btn flex items-center gap-3 p-3 rounded-xl text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all w-full whitespace-nowrap hover:bg-slate-100 dark:hover:bg-slate-700/50"><i class="ph-fill ph-map-trifold text-xl flex-none"></i> <span class="opacity-0 group-hover:opacity-100 transition-opacity delay-75">Limpio</span></button>
         </div>
 
-        <!-- Panel Flotante Izquierdo -->
+        <!-- Panel Flotante Izquierdo (Dinámico) -->
         <div id="sidebarPanel" class="absolute bottom-0 left-0 lg:bottom-auto lg:top-6 lg:left-6 w-full lg:w-[420px] h-[75vh] lg:h-[calc(100vh-120px)] z-[400] flex flex-col pointer-events-none panel-transition panel-collapsed lg:panel-collapsed-none">
             
-            <div class="pointer-events-auto bg-white/90 dark:bg-darksurface/90 backdrop-blur-2xl lg:rounded-3xl shadow-[0_-15px_40px_rgba(0,0,0,0.1)] dark:shadow-[0_-15px_40px_rgba(0,0,0,0.6)] border border-slate-200/50 dark:border-slate-700/50 flex flex-col h-full overflow-hidden rounded-t-3xl transition-colors duration-300">
+            <div class="pointer-events-auto bg-white/95 dark:bg-darksurface/95 backdrop-blur-2xl lg:rounded-3xl shadow-[0_-15px_40px_rgba(0,0,0,0.1)] dark:shadow-[0_-15px_40px_rgba(0,0,0,0.6)] border border-slate-200/50 dark:border-slate-700/50 flex flex-col h-full overflow-hidden rounded-t-3xl transition-colors duration-300">
                 
+                <!-- Toggle Mobile -->
                 <div class="lg:hidden w-full h-10 flex justify-center items-center cursor-pointer bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700/50" onclick="toggleSidebar()">
                     <div class="w-12 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-full"></div>
-                    <span id="mobileToggleText" class="absolute left-6 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest"><i class="ph-bold ph-magnifying-glass"></i> Explorar</span>
+                    <span id="mobileToggleText" class="absolute left-6 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest"><i class="ph-bold ph-caret-down"></i> Ocultar</span>
                 </div>
 
-                <div class="p-5 flex-none bg-transparent relative border-b border-slate-200 dark:border-slate-700/50">
-                    <div class="relative group mb-4">
-                        <input type="text" id="inputSearch" placeholder="Buscar por nombre o código..." class="w-full pl-12 pr-4 py-3.5 bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-semibold text-slate-900 dark:text-white uppercase focus:ring-2 focus:ring-brand-400 focus:border-brand-400 focus:bg-white dark:focus:bg-darkbase outline-none transition-all shadow-inner">
-                        <i class="ph-bold ph-magnifying-glass absolute left-4 top-4 text-slate-400 text-lg group-focus-within:text-brand-500 transition-colors"></i>
+                <!-- SUB-PANEL 1: EXPLORAR -->
+                <div id="panel-explore" class="flex flex-col h-full w-full">
+                    <div class="p-5 flex-none relative border-b border-slate-200 dark:border-slate-700/50">
+                        <div class="relative group mb-4">
+                            <input type="text" id="inputSearch" placeholder="Buscar por nombre o código..." class="w-full pl-12 pr-4 py-3.5 bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-semibold text-slate-900 dark:text-white uppercase focus:ring-2 focus:ring-brand-400 outline-none transition-all">
+                            <i class="ph-bold ph-magnifying-glass absolute left-4 top-4 text-slate-400 text-lg"></i>
+                        </div>
+                        <div class="flex gap-3">
+                            <select id="selRed" onchange="filterRed()" class="w-1/2 p-3 bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 outline-none hover:border-brand-400 cursor-pointer appearance-none uppercase"><option value="">TODAS LAS REDES</option></select>
+                            <select id="selMuni" onchange="execFilter()" class="w-1/2 p-3 bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 outline-none hover:border-brand-400 cursor-pointer appearance-none uppercase" disabled><option value="">MUNICIPIOS</option></select>
+                        </div>
                     </div>
-                    <div class="flex gap-3">
-                        <select id="selRed" onchange="filterRed()" class="w-1/2 p-3 bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 outline-none hover:border-brand-400 focus:ring-2 focus:ring-brand-400 cursor-pointer transition-all appearance-none uppercase"><option value="">TODAS LAS REDES</option></select>
-                        <select id="selMuni" onchange="execFilter()" class="w-1/2 p-3 bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 outline-none hover:border-brand-400 focus:ring-2 focus:ring-brand-400 cursor-pointer transition-all disabled:opacity-50 appearance-none uppercase" disabled><option value="">MUNICIPIOS</option></select>
+                    
+                    <div class="px-5 py-3 bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-200 dark:border-slate-700/50 flex justify-between items-center text-xs font-bold uppercase tracking-wider flex-none text-slate-500 dark:text-slate-400">
+                        <span>Resultados</span> <span id="counter" class="text-slate-900 dark:text-white bg-slate-200 dark:bg-slate-700 px-2.5 py-1 rounded-lg">0</span>
+                    </div>
+                    
+                    <div id="resultList" class="flex-1 overflow-y-auto p-4 space-y-3 custom-scroll"></div>
+                    
+                    <div class="p-4 border-t border-slate-200 dark:border-slate-700/50 flex justify-between items-center bg-transparent flex-none">
+                        <button onclick="pg(-1)" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-brand-400 hover:text-darkbase text-slate-600 dark:text-slate-300 rounded-xl font-bold text-xs"><i class="ph-bold ph-caret-left"></i> Ant</button>
+                        <span id="pgInfo" class="text-xs font-extrabold text-slate-700 dark:text-slate-300">1 / 1</span>
+                        <button onclick="pg(1)" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-brand-400 hover:text-darkbase text-slate-600 dark:text-slate-300 rounded-xl font-bold text-xs">Sig <i class="ph-bold ph-caret-right"></i></button>
                     </div>
                 </div>
 
-                <!-- --- INICIO: ENRUTAMIENTO Y EXPORTACIÓN A WORD --- -->
-                <div class="px-5 py-4 bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700/50 flex-none transition-colors">
-                    <div class="flex justify-between items-center mb-3">
-                        <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                            <i class="ph-bold ph-path text-brand-500"></i>
-                            <span>Rutas y Tramos</span>
+                <!-- SUB-PANEL 2: RUTAS DINÁMICAS (Nuevo Menú Exclusivo) -->
+                <div id="panel-routes" class="hidden flex-col h-full w-full">
+                    <div class="p-5 flex-none border-b border-slate-200 dark:border-slate-700/50 bg-brand-500/10">
+                        <h2 class="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2"><i class="ph-fill ph-map-trifold text-brand-500"></i> Planificador de Viáticos</h2>
+                        <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">Agrega municipios para trazar la ruta exacta y calcular kilometrajes por tramo.</p>
+                    </div>
+                    
+                    <div class="flex-1 overflow-y-auto p-5 custom-scroll">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Puntos de Parada</span>
+                            <button onclick="agregarParada()" class="text-[10px] bg-slate-200 dark:bg-slate-700 hover:bg-brand-400 text-slate-700 dark:text-white px-2 py-1 rounded transition-colors font-bold">+ Agregar Destino</button>
                         </div>
-                        <button onclick="agregarParada()" class="text-[10px] bg-slate-200 dark:bg-slate-700 hover:bg-brand-400 text-slate-700 dark:text-white px-2 py-1 rounded transition-colors font-bold">+ Agregar Destino</button>
-                    </div>
-                    
-                    <div id="waypoints-container" class="flex flex-col gap-2 max-h-32 overflow-y-auto custom-scroll pr-1">
-                        <!-- Selects generados por JS -->
-                    </div>
-                    
-                    <button onclick="calcularRuta()" class="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 rounded-xl text-xs font-bold shadow-md hover:bg-brand-500 dark:hover:bg-brand-400 transition-colors">
-                        <i class="ph-bold ph-car-profile text-sm"></i> Generar Reporte de Ruta
-                    </button>
+                        
+                        <div id="waypoints-container" class="flex flex-col gap-3 mb-5">
+                            <!-- Selects generados por JS -->
+                        </div>
+                        
+                        <button onclick="calcularRuta()" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 rounded-xl text-sm font-bold shadow-md hover:bg-brand-500 dark:hover:bg-brand-400 transition-colors">
+                            <i class="ph-bold ph-car-profile"></i> Trazar Ruta en el Mapa
+                        </button>
 
-                    <!-- REPORTE DINÁMICO DE KILOMETRAJE CON WORD -->
-                    <div id="route-report" class="hidden mt-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
-                        <div class="bg-brand-500 text-darkbase px-3 py-2 text-xs font-black uppercase flex items-center gap-2">
-                            <i class="ph-bold ph-receipt"></i> Detalle de Kilometraje
-                        </div>
-                        <div id="report-content" class="p-0">
-                            <!-- Lista de tramos -->
-                        </div>
-                        <div class="bg-slate-100 dark:bg-slate-800 px-3 py-3 text-xs flex flex-col gap-3 font-black border-t border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
-                            <div class="flex justify-between items-center">
-                                <span>RECORRIDO TOTAL:</span>
-                                <span id="report-total-dist" class="text-sm">0 km</span>
+                        <!-- REPORTE DINÁMICO DE KILOMETRAJE CON WORD -->
+                        <div id="route-report" class="hidden mt-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
+                            <div class="bg-brand-500 text-darkbase px-3 py-2 text-xs font-black uppercase flex items-center gap-2">
+                                <i class="ph-bold ph-receipt"></i> Detalle de Tramos
                             </div>
-                            <button onclick="exportarWord()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors flex justify-center items-center gap-2 shadow-md">
-                                <i class="ph-bold ph-file-doc text-base"></i> Generar Word (Viáticos)
-                            </button>
+                            <div id="report-content" class="p-0">
+                                <!-- Lista de tramos -->
+                            </div>
+                            <div class="bg-slate-100 dark:bg-slate-800 p-4 flex flex-col gap-3 border-t border-slate-200 dark:border-slate-700">
+                                <div class="flex justify-between items-center text-slate-800 dark:text-slate-100 font-black">
+                                    <span class="text-xs">RECORRIDO TOTAL:</span>
+                                    <span id="report-total-dist" class="text-base text-brand-600 dark:text-brand-400">0 km</span>
+                                </div>
+                                <button onclick="exportarWord()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors flex justify-center items-center gap-2 shadow-md">
+                                    <i class="ph-bold ph-file-doc text-base"></i> Exportar Formato Viáticos (Word)
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <!-- --- FIN: ENRUTAMIENTO Y EXPORTACIÓN A WORD --- -->
 
-                <div class="px-5 py-3 bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-200 dark:border-slate-700/50 flex justify-between items-center text-xs font-bold uppercase tracking-wider flex-none text-slate-500 dark:text-slate-400">
-                    <span>Resultados</span>
-                    <span id="counter" class="text-slate-900 dark:text-white bg-slate-200 dark:bg-slate-700 px-2.5 py-1 rounded-lg">0</span>
-                </div>
-                
-                <div id="resultList" class="flex-1 overflow-y-auto p-4 space-y-3 custom-scroll"></div>
-                
-                <div class="p-4 border-t border-slate-200 dark:border-slate-700/50 flex justify-between items-center bg-transparent flex-none">
-                    <button onclick="pg(-1)" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-brand-400 hover:text-darkbase text-slate-600 dark:text-slate-300 rounded-xl transition-colors font-bold text-xs"><i class="ph-bold ph-caret-left"></i> Ant</button>
-                    <span id="pgInfo" class="text-xs font-extrabold text-slate-700 dark:text-slate-300">1 / 1</span>
-                    <button onclick="pg(1)" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-brand-400 hover:text-darkbase text-slate-600 dark:text-slate-300 rounded-xl transition-colors font-bold text-xs">Sig <i class="ph-bold ph-caret-right"></i></button>
-                </div>
             </div>
         </div>
     </div>
 
-    <!-- VISTA ESTADÍSTICAS -->
+    <!-- VISTA: ESTADÍSTICAS -->
     <div id="view-stats" class="view-panel container mx-auto p-4 md:p-8 overflow-y-auto custom-scroll">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-10">
-            <div class="lg:col-span-3 bg-gradient-to-br from-brand-400 to-brand-600 p-8 md:p-10 rounded-[2rem] shadow-xl text-darkbase flex justify-between items-center relative overflow-hidden transform transition hover:scale-[1.01]">
+            <div class="lg:col-span-3 bg-gradient-to-br from-brand-400 to-brand-600 p-8 md:p-10 rounded-[2rem] shadow-xl text-darkbase flex justify-between items-center relative overflow-hidden">
                 <div class="z-10">
                     <h2 class="text-sm md:text-base font-extrabold uppercase tracking-widest opacity-80 mb-2">Total de Establecimientos</h2>
                     <span class="text-6xl md:text-8xl font-black drop-shadow-md tracking-tighter" id="kpi-total">0</span>
                 </div>
                 <i class="ph-duotone ph-buildings text-9xl opacity-20 absolute -right-6 -bottom-6 transform rotate-12 scale-150"></i>
             </div>
-
-            <div class="bg-white dark:bg-darksurface p-6 rounded-[2rem] shadow-lg border border-slate-200 dark:border-slate-700 transition-colors"><div id="chart1" class="w-full h-[320px]"></div></div>
-            <div class="bg-white dark:bg-darksurface p-6 rounded-[2rem] shadow-lg border border-slate-200 dark:border-slate-700 transition-colors"><div id="chart2" class="w-full h-[320px]"></div></div>
-            <div class="md:col-span-2 lg:col-span-3 bg-white dark:bg-darksurface p-6 rounded-[2rem] shadow-lg border border-slate-200 dark:border-slate-700 transition-colors"><div id="chart3" class="w-full h-[400px]"></div></div>
+            <div class="bg-white dark:bg-darksurface p-6 rounded-[2rem] shadow-lg border border-slate-200 dark:border-slate-700"><div id="chart1" class="w-full h-[320px]"></div></div>
+            <div class="bg-white dark:bg-darksurface p-6 rounded-[2rem] shadow-lg border border-slate-200 dark:border-slate-700"><div id="chart2" class="w-full h-[320px]"></div></div>
+            <div class="md:col-span-2 lg:col-span-3 bg-white dark:bg-darksurface p-6 rounded-[2rem] shadow-lg border border-slate-200 dark:border-slate-700"><div id="chart3" class="w-full h-[400px]"></div></div>
         </div>
     </div>
 
@@ -268,15 +266,14 @@
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR1DHcWzeJllMtxhIQlpaw6byDlbsji0L4w3SZaWTQDgdz2MdeJEGfB6peldYWgEeQUzgr0hP73zwwt/pub?output=csv';
 
         let rawData=[], filteredData=[], markers={}, map, markerClusterGroup, page=1;
+        const perPage=12; 
         
-        // Variables para Rutas Múltiples y Exportación
+        // Variables para Rutas Múltiples
         let routingControl = null; 
         let globalMunicipios = [];
         let waypointCount = 0;
         let currentRouteData = [];
         let currentTotalKm = 0;
-
-        const perPage=12; 
         let isSidebarOpen = false;
 
         // --- TEMA DINÁMICO ---
@@ -301,7 +298,7 @@
             applyTheme();
         }
 
-        // --- MAPA ---
+        // --- INICIALIZACIÓN ---
         const mapOptions = { zoomControl: false, preferCanvas: true, wheelDebounceTime: 150 };
         const layerCfg = { maxZoom: 22, maxNativeZoom: 18, keepBuffer: 4, updateWhenZooming: false, updateWhenIdle: true };
         
@@ -311,9 +308,7 @@
             clean_light: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', layerCfg),
             clean_dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', layerCfg)
         };
-        
-        let currentLayerType = 'osm';
-        let currentLayerObj = mapLayers.osm;
+        let currentLayerType = 'osm', currentLayerObj = mapLayers.osm;
 
         document.addEventListener('DOMContentLoaded', () => {
             applyTheme();
@@ -324,6 +319,46 @@
             if(window.innerWidth >= 1024) toggleSidebar(true);
         });
 
+        // --- NAVEGACIÓN Y VISTAS ---
+        function setView(viewName) {
+            // Clases para botones
+            const activeClass = "flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all bg-brand-400 text-darkbase shadow-md";
+            const inactiveClass = "flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm";
+            
+            // Resetear todos los botones
+            document.getElementById('btn-explore').className = inactiveClass;
+            document.getElementById('btn-routes').className = inactiveClass;
+            document.getElementById('btn-stats').className = inactiveClass;
+
+            // Ocultar vistas principales
+            document.getElementById('view-map').classList.remove('active');
+            document.getElementById('view-stats').classList.remove('active');
+
+            if(viewName === 'explore') {
+                document.getElementById('btn-explore').className = activeClass;
+                document.getElementById('view-map').classList.add('active');
+                document.getElementById('panel-explore').classList.remove('hidden');
+                document.getElementById('panel-explore').classList.add('flex');
+                document.getElementById('panel-routes').classList.add('hidden');
+                document.getElementById('panel-routes').classList.remove('flex');
+                setTimeout(()=>map.invalidateSize(), 200);
+            } 
+            else if(viewName === 'routes') {
+                document.getElementById('btn-routes').className = activeClass;
+                document.getElementById('view-map').classList.add('active');
+                document.getElementById('panel-routes').classList.remove('hidden');
+                document.getElementById('panel-routes').classList.add('flex');
+                document.getElementById('panel-explore').classList.add('hidden');
+                document.getElementById('panel-explore').classList.remove('flex');
+                setTimeout(()=>map.invalidateSize(), 200);
+            } 
+            else if(viewName === 'stats') {
+                document.getElementById('btn-stats').className = activeClass;
+                document.getElementById('view-stats').classList.add('active');
+                setTimeout(()=>{ch1.reflow();ch2.reflow();ch3.reflow()}, 200);
+            }
+        }
+
         function toggleSidebar(forceState = null) {
             const panel = document.getElementById('sidebarPanel');
             const txt = document.getElementById('mobileToggleText');
@@ -331,13 +366,14 @@
             
             if(isSidebarOpen) {
                 panel.classList.remove('panel-collapsed');
-                txt.innerHTML = '<i class="ph-bold ph-caret-down"></i> Ocultar';
+                txt.innerHTML = '<i class="ph-bold ph-caret-down"></i> Ocultar panel';
             } else {
                 panel.classList.add('panel-collapsed');
-                txt.innerHTML = '<i class="ph-bold ph-magnifying-glass"></i> Explorar';
+                txt.innerHTML = '<i class="ph-bold ph-caret-up"></i> Mostrar panel';
             }
         }
 
+        // --- MAPA ---
         function initMap() {
             map = L.map('map', mapOptions).setView([-16.5000, -68.1193], 12);
             L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -350,18 +386,11 @@
             map.addLayer(markerClusterGroup);
         }
 
-        function setLayer(type, btnElement) {
-            document.querySelectorAll('.layer-btn').forEach(btn => btn.classList.remove('active'));
-            if(btnElement) btnElement.classList.add('active');
-            
-            map.removeLayer(currentLayerObj); 
-            currentLayerType = type;
-            
-            if (type === 'clean') {
-                currentLayerObj = isDark ? mapLayers.clean_dark : mapLayers.clean_light;
-            } else {
-                currentLayerObj = mapLayers[type];
-            }
+        function setLayer(type, btn) {
+            document.querySelectorAll('.layer-btn').forEach(b => b.classList.remove('active'));
+            if(btn) btn.classList.add('active');
+            map.removeLayer(currentLayerObj); currentLayerType = type;
+            currentLayerObj = (type === 'clean') ? (isDark ? mapLayers.clean_dark : mapLayers.clean_light) : mapLayers[type];
             map.addLayer(currentLayerObj); 
         }
 
@@ -373,12 +402,12 @@
             }
         }
 
+        // --- DATOS Y FILTROS ---
         function loadData() {
             Papa.parse(CSV_URL, {
                 download: true, header: true, dynamicTyping: true, skipEmptyLines: true,
                 complete: (res) => {
                     rawData = res.data.filter(r => r.Latitud && r.Longitud && r.NOMBRE);
-                    
                     const redes = [...new Set(rawData.map(d=>d.RED))].sort();
                     redes.forEach(r => document.getElementById('selRed').add(new Option(r,r)));
                     
@@ -423,8 +452,7 @@
 
             filteredData.forEach(item => {
                 let lvl = String(item.NIVEL).toLowerCase();
-                let cssClass = 'pin-l1'; let iconClass = 'ph-first-aid'; let headerColor = 'bg-emerald-500';
-
+                let cssClass = 'pin-l1', iconClass = 'ph-first-aid', headerColor = 'bg-emerald-500';
                 if(lvl.includes('2')) { cssClass = 'pin-l2'; iconClass = 'ph-hospital'; headerColor = 'bg-amber-500'; } 
                 else if (lvl.includes('3')) { cssClass = 'pin-l3'; iconClass = 'ph-buildings'; headerColor = 'bg-slate-700'; }
 
@@ -441,11 +469,8 @@
                             <span class="absolute top-5 right-5 text-[10px] font-mono text-darkbase bg-brand-400 px-3 py-1 rounded-full font-bold shadow-sm">COD: ${item.COD_SNIS}</span>
                             <p class="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">${item.NIVEL}</p>
                             <h3 class="text-[17px] font-black text-slate-900 dark:text-white leading-tight mb-5 pr-20">${item.NOMBRE}</h3>
-                            
                             <div class="space-y-3 text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-700/50">
                                 <div class="flex items-center gap-3"><div class="p-1.5 bg-yellow-100 dark:bg-yellow-900/40 text-brand-600 dark:text-brand-400 rounded-lg"><i class="ph-bold ph-map-pin text-sm"></i></div> <span class="font-semibold uppercase">${item.MUNICIPIO}</span></div>
-                                <div class="flex items-center gap-3"><div class="p-1.5 bg-yellow-100 dark:bg-yellow-900/40 text-brand-600 dark:text-brand-400 rounded-lg"><i class="ph-bold ph-users-three text-sm"></i></div> <span class="font-medium uppercase">RED: ${item.RED}</span></div>
-                                <div class="flex items-center gap-3"><div class="p-1.5 bg-yellow-100 dark:bg-yellow-900/40 text-brand-600 dark:text-brand-400 rounded-lg"><i class="ph-bold ph-tag text-sm"></i></div> <span class="font-medium uppercase">${item.SUBSECTOR}</span></div>
                             </div>
                         </div>
                     </div>
@@ -454,9 +479,7 @@
                 const m = L.marker([item.Latitud, item.Longitud], { icon: icon }).bindPopup(popupContent, { className: 'modern-popup' });
                 m.on('click', () => { map.flyTo([item.Latitud, item.Longitud], 17, { duration: 0.8 }); });
                 
-                markerList.push(m);
-                markers[item.COD_SNIS] = m;
-                bounds.extend([item.Latitud, item.Longitud]);
+                markerList.push(m); markers[item.COD_SNIS] = m; bounds.extend([item.Latitud, item.Longitud]);
             });
 
             markerClusterGroup.addLayers(markerList);
@@ -470,69 +493,39 @@
             if(page > maxPage) page = maxPage; if(page < 1) page = 1;
 
             if(filteredData.length === 0) {
-                div.innerHTML = '<div class="text-center p-8 text-slate-400 font-semibold"><i class="ph-duotone ph-warning-circle text-5xl mb-3 opacity-50"></i><br>No se encontraron resultados</div>';
+                div.innerHTML = '<div class="text-center p-8 text-slate-400 font-semibold"><i class="ph-duotone ph-warning-circle text-5xl mb-3 opacity-50"></i><br>No hay resultados</div>';
                 document.getElementById('pgInfo').innerText = `0 / 0`; return;
             }
 
             filteredData.slice((page-1)*perPage, page*perPage).forEach(d => {
-                let border = 'border-l-emerald-500';
-                if(String(d.NIVEL).toLowerCase().includes('2')) border = 'border-l-amber-500';
-                if(String(d.NIVEL).toLowerCase().includes('3')) border = 'border-l-slate-500';
-
+                let border = d.NIVEL.includes('3') ? 'border-l-slate-500' : (d.NIVEL.includes('2') ? 'border-l-amber-500' : 'border-l-emerald-500');
                 const el = document.createElement('div');
                 el.className = `p-4 bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-100 dark:border-slate-700 border-l-[4px] ${border} shadow-sm hover:shadow-md cursor-pointer transition-all duration-300 hover:-translate-y-1 group`;
-                el.innerHTML = `
-                    <h4 class="font-bold text-[13px] text-slate-800 dark:text-slate-100 group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors line-clamp-1 mb-2 uppercase">${d.NOMBRE}</h4>
-                    <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900/50 px-2.5 py-1 rounded-md uppercase">${d.MUNICIPIO}</span>
-                        <div class="bg-slate-50 dark:bg-slate-700 p-1.5 rounded-full group-hover:bg-brand-400 group-hover:text-darkbase transition-colors">
-                            <i class="ph-bold ph-arrow-right text-slate-400 dark:text-slate-400 group-hover:text-darkbase text-[10px]"></i>
-                        </div>
-                    </div>
-                `;
+                el.innerHTML = `<h4 class="font-bold text-[13px] text-slate-800 dark:text-slate-100 group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors line-clamp-1 mb-2 uppercase">${d.NOMBRE}</h4><div class="flex justify-between items-center"><span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900/50 px-2.5 py-1 rounded-md uppercase">${d.MUNICIPIO}</span><div class="bg-slate-50 dark:bg-slate-700 p-1.5 rounded-full group-hover:bg-brand-400 group-hover:text-darkbase transition-colors"><i class="ph-bold ph-arrow-right text-slate-400 dark:text-slate-400 group-hover:text-darkbase text-[10px]"></i></div></div>`;
                 el.onclick = () => {
                     if(window.innerWidth < 1024) toggleSidebar(false);
-                    if(markers[d.COD_SNIS]) {
-                        markerClusterGroup.zoomToShowLayer(markers[d.COD_SNIS], () => {
-                            map.flyTo([d.Latitud, d.Longitud], 18, { duration: 0.8 });
-                            setTimeout(() => markers[d.COD_SNIS].openPopup(), 600);
-                        });
-                    }
+                    if(markers[d.COD_SNIS]) markerClusterGroup.zoomToShowLayer(markers[d.COD_SNIS], () => { map.flyTo([d.Latitud, d.Longitud], 18, { duration: 0.8 }); setTimeout(() => markers[d.COD_SNIS].openPopup(), 600); });
                 };
                 div.appendChild(el);
             });
             document.getElementById('pgInfo').innerText = `${page} / ${maxPage}`;
         }
-        
         function pg(d) { page+=d; renderList(); }
 
-        // --- SISTEMA DE ENRUTAMIENTO MULTIPLE Y WORD ---
+        // --- SISTEMA DE RUTAS EXACTAS (MEDOIDES Y JERARQUÍA) ---
         function agregarParada(label = null) {
             waypointCount++;
             const currentLabel = label || `DESTINO ${waypointCount - 1}`;
             const divId = `wp-row-${waypointCount}`;
-            
             const div = document.createElement('div');
             div.className = "flex items-center gap-2";
             div.id = divId;
             
             let optionsHtml = `<option value="">${currentLabel}...</option>`;
-            globalMunicipios.forEach(m => {
-                optionsHtml += `<option value="${m}">${m.toUpperCase()}</option>`;
-            });
+            globalMunicipios.forEach(m => { optionsHtml += `<option value="${m}">${m.toUpperCase()}</option>`; });
+            let removeBtn = (waypointCount > 2) ? `<button onclick="removerParada('${divId}')" class="text-red-500 hover:text-red-700 bg-red-50 dark:bg-red-900/30 p-2 rounded-lg"><i class="ph-bold ph-trash"></i></button>` : `<div class="w-8"></div>`; 
 
-            let removeBtn = (waypointCount > 2) 
-                ? `<button onclick="removerParada('${divId}')" class="text-red-500 hover:text-red-700 p-1"><i class="ph-bold ph-trash"></i></button>`
-                : `<div class="w-6"></div>`; 
-
-            div.innerHTML = `
-                <div class="badge-num bg-brand-400 text-darkbase w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black flex-none">${waypointCount}</div>
-                <select class="wp-select flex-1 p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-300 outline-none hover:border-brand-400 focus:ring-2 focus:ring-brand-400 cursor-pointer transition-all appearance-none uppercase">
-                    ${optionsHtml}
-                </select>
-                ${removeBtn}
-            `;
-            
+            div.innerHTML = `<div class="badge-num bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black flex-none">${waypointCount}</div><select class="wp-select flex-1 p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 outline-none hover:border-brand-400 focus:ring-2 focus:ring-brand-400 cursor-pointer transition-all appearance-none uppercase shadow-sm">${optionsHtml}</select>${removeBtn}`;
             document.getElementById('waypoints-container').appendChild(div);
         }
 
@@ -543,115 +536,96 @@
             waypointCount = badges.length;
         }
 
-        function obtenerCentroMunicipio(nombreMunicipio) {
+        // NUEVO: Algoritmo de precisión para encontrar el centro real del municipio
+        function obtenerCentroMunicipioExacto(nombreMunicipio) {
             const establecimientos = rawData.filter(d => d.MUNICIPIO === nombreMunicipio);
             if (establecimientos.length === 0) return null;
             
-            let sumLat = 0, sumLng = 0;
-            establecimientos.forEach(est => {
-                sumLat += parseFloat(est.Latitud);
-                sumLng += parseFloat(est.Longitud);
-            });
-            return L.latLng(sumLat / establecimientos.length, sumLng / establecimientos.length);
+            // 1. Buscar el hospital de mayor nivel (suele estar en la capital)
+            let capital = establecimientos.find(e => String(e.NIVEL).includes('3'));
+            if (!capital) capital = establecimientos.find(e => String(e.NIVEL).includes('2'));
+            
+            // 2. Buscar un centro que se llame igual que el municipio
+            if (!capital) {
+                capital = establecimientos.find(e => e.NOMBRE.toUpperCase().includes(nombreMunicipio.toUpperCase()));
+            }
+            
+            // 3. Si no hay, calcular el medoide (el centro más cercano al centroide geográfico)
+            if (!capital) {
+                let sumLat = 0, sumLng = 0;
+                establecimientos.forEach(est => { sumLat += parseFloat(est.Latitud); sumLng += parseFloat(est.Longitud); });
+                const avgLat = sumLat / establecimientos.length, avgLng = sumLng / establecimientos.length;
+                
+                let minDist = Infinity;
+                establecimientos.forEach(est => {
+                    const lat = parseFloat(est.Latitud), lng = parseFloat(est.Longitud);
+                    const dist = Math.pow(lat - avgLat, 2) + Math.pow(lng - avgLng, 2);
+                    if (dist < minDist) { minDist = dist; capital = est; }
+                });
+            }
+            
+            return L.latLng(parseFloat(capital.Latitud), parseFloat(capital.Longitud));
         }
 
         function calcularRuta() {
             const selects = document.querySelectorAll('.wp-select');
-            const validWaypoints = [];
-            const validNames = [];
+            const validWaypoints = [], validNames = [];
 
             selects.forEach(sel => {
                 if (sel.value) {
-                    const pt = obtenerCentroMunicipio(sel.value);
-                    if (pt) {
-                        validWaypoints.push(pt);
-                        validNames.push(sel.value.toUpperCase());
-                    }
+                    const pt = obtenerCentroMunicipioExacto(sel.value);
+                    if (pt) { validWaypoints.push(pt); validNames.push(sel.value.toUpperCase()); }
                 }
             });
 
-            if (validWaypoints.length < 2) {
-                alert("Seleccione al menos un origen y un destino válidos para generar la ruta.");
-                return;
-            }
+            if (validWaypoints.length < 2) { alert("Seleccione al menos un origen y un destino."); return; }
 
             if (routingControl) map.removeControl(routingControl);
 
             routingControl = L.Routing.control({
                 waypoints: validWaypoints,
-                router: L.Routing.osrmv1({
-                    language: 'es',
-                    profile: 'driving'
-                }),
-                lineOptions: {
-                    styles: [{ color: '#2563eb', opacity: 0.7, weight: 6 }] 
+                router: L.Routing.osrmv1({ language: 'es', profile: 'driving' }),
+                lineOptions: { styles: [{ color: '#2563eb', opacity: 0.8, weight: 6 }] },
+                createMarker: function(i, wp, n) {
+                    let color = (i === 0) ? 'bg-emerald-500' : ((i === n - 1) ? 'bg-red-500' : 'bg-blue-500');
+                    const iconHtml = `<div class="w-6 h-6 rounded-full border-[3px] border-white shadow-lg ${color} flex items-center justify-center text-[11px] font-black text-white">${i+1}</div>`;
+                    return L.marker(wp.latLng, { icon: L.divIcon({ className: 'custom-route-marker', html: iconHtml, iconSize: [24, 24], iconAnchor: [12, 12] }) });
                 },
-                createMarker: function(i, waypoint, n) {
-                    let color = 'bg-blue-500';
-                    if (i === 0) color = 'bg-emerald-500';
-                    else if (i === n - 1) color = 'bg-red-500';
-                    
-                    const iconHtml = `<div class="w-5 h-5 rounded-full border-2 border-white shadow-lg ${color} flex items-center justify-center text-[10px] font-bold text-white">${i+1}</div>`;
-                    return L.marker(waypoint.latLng, {
-                        icon: L.divIcon({ className: 'custom-route-marker', html: iconHtml, iconSize: [20, 20], iconAnchor: [10, 10] })
-                    });
-                },
-                show: false, 
-                addWaypoints: false,
-                fitSelectedRoutes: true
+                show: false, addWaypoints: false, fitSelectedRoutes: true
             }).addTo(map);
 
-            routingControl.on('routesfound', function(e) {
-                generarReporteRuta(e.routes[0], validNames);
-            });
+            routingControl.on('routesfound', function(e) { generarReporteRuta(e.routes[0], validNames); });
         }
 
         function generarReporteRuta(route, names) {
-            const container = document.getElementById('route-report');
-            const content = document.getElementById('report-content');
-            const totalLabel = document.getElementById('report-total-dist');
-            
-            content.innerHTML = '';
-            currentRouteData = []; 
-            
-            const coords = route.coordinates;
-            const wpIndices = route.waypointIndices; 
+            const container = document.getElementById('route-report'), content = document.getElementById('report-content'), totalLabel = document.getElementById('report-total-dist');
+            content.innerHTML = ''; currentRouteData = []; 
+            const coords = route.coordinates, wpIndices = route.waypointIndices; 
 
             for(let i = 0; i < names.length - 1; i++) {
-                let startIndex = wpIndices[i];
-                let endIndex = wpIndices[i+1];
-                let segmentDistMeters = 0;
-                
-                for (let j = startIndex; j < endIndex; j++) {
-                    segmentDistMeters += coords[j].distanceTo(coords[j+1]);
-                }
-                
+                let startIndex = wpIndices[i], endIndex = wpIndices[i+1], segmentDistMeters = 0;
+                for (let j = startIndex; j < endIndex; j++) { segmentDistMeters += coords[j].distanceTo(coords[j+1]); }
                 let distKm = (segmentDistMeters / 1000).toFixed(1);
                 
                 currentRouteData.push({ tramo: i + 1, origen: names[i], destino: names[i+1], distancia: distKm });
                 
                 content.innerHTML += `
-                    <div class="px-3 py-2 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center text-xs">
-                        <div class="flex flex-col">
-                            <span class="text-slate-500 dark:text-slate-400 text-[9px] font-bold uppercase">TRAMO ${i+1}</span>
-                            <span class="text-slate-800 dark:text-slate-200 font-semibold line-clamp-1">${names[i]} <i class="ph-bold ph-arrow-right mx-1 text-brand-500"></i> ${names[i+1]}</span>
+                    <div class="px-3 py-2.5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center text-xs">
+                        <div class="flex flex-col gap-0.5">
+                            <span class="text-slate-500 dark:text-slate-400 text-[9px] font-black uppercase tracking-wider">TRAMO ${i+1}</span>
+                            <span class="text-slate-800 dark:text-slate-200 font-bold flex items-center gap-1.5">${names[i]} <i class="ph-bold ph-arrow-right text-brand-500"></i> ${names[i+1]}</span>
                         </div>
-                        <span class="font-black text-brand-600 dark:text-brand-400 bg-brand-500/10 px-2 py-1 rounded">${distKm} km</span>
+                        <span class="font-black text-brand-600 dark:text-brand-400 bg-brand-500/10 px-2.5 py-1 rounded-lg border border-brand-500/20">${distKm} km</span>
                     </div>
                 `;
             }
             
             currentTotalKm = (route.summary.totalDistance / 1000).toFixed(1);
-            container.classList.remove('hidden');
-            totalLabel.innerText = `${currentTotalKm} km`;
+            container.classList.remove('hidden'); totalLabel.innerText = `${currentTotalKm} km`;
         }
 
         function exportarWord() {
-            if (currentRouteData.length === 0) {
-                alert("No hay datos de ruta generados para exportar.");
-                return;
-            }
-
+            if (currentRouteData.length === 0) return;
             const fechaActual = new Date().toLocaleDateString('es-BO');
 
             let tablaHTML = `
@@ -675,125 +649,55 @@
                     <p><strong>FECHA:</strong> ${fechaActual}</p>
                     <table>
                         <thead>
-                            <tr>
-                                <th>N° TRAMO</th>
-                                <th>MUNICIPIO ORIGEN</th>
-                                <th>MUNICIPIO DESTINO</th>
-                                <th>DISTANCIA (KM)</th>
-                                <th>MONTO DE VIÁTICO (Bs.)</th>
-                            </tr>
+                            <tr><th>N° TRAMO</th><th>MUNICIPIO ORIGEN</th><th>MUNICIPIO DESTINO</th><th>DISTANCIA (KM)</th><th>MONTO DE VIÁTICO (Bs.)</th></tr>
                         </thead>
                         <tbody>
             `;
-
             currentRouteData.forEach(item => {
-                tablaHTML += `
-                    <tr>
-                        <td class="text-center">${item.tramo}</td>
-                        <td>${item.origen}</td>
-                        <td>${item.destino}</td>
-                        <td class="text-right">${item.distancia}</td>
-                        <td></td>
-                    </tr>
-                `;
+                tablaHTML += `<tr><td class="text-center">${item.tramo}</td><td>${item.origen}</td><td>${item.destino}</td><td class="text-right">${item.distancia}</td><td></td></tr>`;
             });
-
             tablaHTML += `
                         </tbody>
                         <tfoot>
-                            <tr>
-                                <td colspan="3" class="text-right" style="font-weight: bold;">TOTAL RECORRIDO:</td>
-                                <td class="text-right" style="font-weight: bold;">${currentTotalKm}</td>
-                                <td style="background-color: #f8fafc;"></td>
-                            </tr>
+                            <tr><td colspan="3" class="text-right" style="font-weight: bold;">TOTAL RECORRIDO:</td><td class="text-right" style="font-weight: bold;">${currentTotalKm}</td><td style="background-color: #f8fafc;"></td></tr>
                         </tfoot>
                     </table>
-                    <br>
-                    <p><strong>FIRMA RESPONSABLE:</strong> ___________________________</p>
+                    <br><br><br>
+                    <p style="text-align:center;">_________________________________<br><strong>FIRMA RESPONSABLE</strong></p>
                 </body>
                 </html>
             `;
-
+            
             const blob = new Blob(['\ufeff', tablaHTML], { type: 'application/msword' });
-            const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            
-            link.href = url;
-            link.download = `Reporte_Viaticos_Ruta_${fechaActual.replace(/\//g, '-')}.doc`;
-            
-            document.body.appendChild(link);
-            link.click();
-            
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+            link.href = URL.createObjectURL(blob);
+            link.download = `Reporte_Viaticos_${fechaActual.replace(/\//g, '-')}.doc`;
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
-        // --- HIGHCHARTS RESPONSIVO ---
+        // --- GRÁFICOS ---
         let ch1, ch2, ch3;
         function initCharts() {
-            Highcharts.setOptions({ chart: { style: { fontFamily: 'Inter' }, animation: { duration: 800, easing: 'easeOutBounce' } } });
-            
-            const commonObj = { 
-                chart: { backgroundColor: 'transparent' }, 
-                title: { style: { fontWeight: '800', fontSize: '16px' } },
-                legend: { enabled: false }, credits: { enabled: false }
-            };
-
-            ch1 = Highcharts.chart('chart1', { ...commonObj, chart: { ...commonObj.chart, type: 'variablepie' }, title: { text: 'Distribución por Nivel' }, series: [{ innerSize: '65%', name: 'Centros', data: [] }] });
-            ch2 = Highcharts.chart('chart2', { ...commonObj, chart: { ...commonObj.chart, type: 'bar' }, title: { text: 'Subsector' }, xAxis: { categories: [] }, yAxis: { title: null }, series: [{ name: 'Total', data: [], colorByPoint: true, borderRadius: 4 }] });
-            ch3 = Highcharts.chart('chart3', { ...commonObj, chart: { ...commonObj.chart, type: 'column' }, title: { text: 'Establecimientos por Red' }, xAxis: { type: 'category' }, yAxis: { title: null }, series: [{ name: 'Total', data: [], color: '#facc15', borderRadius: 6 }] });
-            
+            Highcharts.setOptions({ chart: { style: { fontFamily: 'Inter' } } });
+            const cObj = { chart: { backgroundColor: 'transparent' }, title: { style: { fontWeight: '800', fontSize: '16px' } }, legend: { enabled: false }, credits: { enabled: false } };
+            ch1 = Highcharts.chart('chart1', { ...cObj, chart: { ...cObj.chart, type: 'variablepie' }, title: { text: 'Nivel' }, series: [{ innerSize: '65%', name: 'Centros', data: [] }] });
+            ch2 = Highcharts.chart('chart2', { ...cObj, chart: { ...cObj.chart, type: 'bar' }, title: { text: 'Subsector' }, xAxis: { categories: [] }, yAxis: { title: null }, series: [{ name: 'Total', data: [], colorByPoint: true, borderRadius: 4 }] });
+            ch3 = Highcharts.chart('chart3', { ...cObj, chart: { ...cObj.chart, type: 'column' }, title: { text: 'Redes' }, xAxis: { type: 'category' }, yAxis: { title: null }, series: [{ name: 'Total', data: [], color: '#facc15', borderRadius: 6 }] });
             updateChartsTheme();
         }
 
         function updateChartsData() {
             const count = (k) => { const c={}; filteredData.forEach(i=>{let v=i[k]||'S/D';c[v]=(c[v]||0)+1;}); return Object.entries(c).map(([name,y])=>({name,y})).sort((a,b)=>b.y-a.y); };
-            
-            const d1 = count('NIVEL'); 
-            d1.forEach(p => { 
-                let n=p.name.toLowerCase(); 
-                if(n.includes('1')) p.color='#10b981'; 
-                if(n.includes('2')) p.color='#f59e0b'; 
-                if(n.includes('3')) p.color='#64748b'; 
-            });
+            const d1 = count('NIVEL'); d1.forEach(p => { let n=p.name.toLowerCase(); if(n.includes('1')) p.color='#10b981'; if(n.includes('2')) p.color='#f59e0b'; if(n.includes('3')) p.color='#64748b'; });
             ch1.series[0].setData(d1);
-            
-            const d2 = count('SUBSECTOR'); 
-            ch2.xAxis[0].setCategories(d2.map(x=>x.name)); ch2.series[0].setData(d2.map(x=>x.y));
+            const d2 = count('SUBSECTOR'); ch2.xAxis[0].setCategories(d2.map(x=>x.name)); ch2.series[0].setData(d2.map(x=>x.y));
             ch3.series[0].setData(count('RED'));
         }
 
         function updateChartsTheme() {
-            const textColor = isDark ? '#f8fafc' : '#0f172a';
-            const gridColor = isDark ? '#334155' : '#e2e8f0';
-            
-            const themeParams = {
-                title: { style: { color: textColor } },
-                xAxis: { labels: { style: { color: textColor } } },
-                yAxis: { labels: { style: { color: textColor } }, gridLineColor: gridColor },
-                tooltip: { backgroundColor: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)', style: { color: textColor }, borderWidth: 1, borderColor: gridColor, borderRadius: 12, padding: 12 }
-            };
-
-            if(ch1) ch1.update(themeParams);
-            if(ch2) ch2.update(themeParams);
-            if(ch3) ch3.update(themeParams);
-        }
-
-        function setView(v) {
-            document.querySelectorAll('.view-panel').forEach(e=>e.classList.remove('active')); 
-            document.getElementById('view-'+v).classList.add('active');
-            
-            const b1=document.getElementById('btn-map'), b2=document.getElementById('btn-stats');
-            const activeClass = "flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all bg-brand-400 text-darkbase shadow-md";
-            const inactiveClass = "flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm";
-            
-            if(v==='map'){ 
-                b1.className=activeClass; b2.className=inactiveClass; 
-                setTimeout(()=>map.invalidateSize(),200); 
-            } else { 
-                b2.className=activeClass; b1.className=inactiveClass; 
-                setTimeout(()=>{ch1.reflow();ch2.reflow();ch3.reflow()},200); 
-            }
+            const tc = isDark ? '#f8fafc' : '#0f172a', gc = isDark ? '#334155' : '#e2e8f0';
+            const tp = { title: { style: { color: tc } }, xAxis: { labels: { style: { color: tc } } }, yAxis: { labels: { style: { color: tc } }, gridLineColor: gc }, tooltip: { backgroundColor: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)', style: { color: tc }, borderColor: gc, borderRadius: 12 } };
+            if(ch1) ch1.update(tp); if(ch2) ch2.update(tp); if(ch3) ch3.update(tp);
         }
     </script>
 </body>
